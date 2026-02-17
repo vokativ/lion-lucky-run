@@ -6,52 +6,31 @@ export class PauseScene extends Phaser.Scene {
     }
 
     create() {
-        this.buildLayout();
-        this.scale.on('resize', this.handleResize, this);
-    }
-
-    private handleResize() {
-        this.children.removeAll(true);
-        if (this.input.keyboard) {
-            this.input.keyboard.removeAllListeners();
-        }
-        this.buildLayout();
-    }
-
-    private buildLayout() {
-        const { width, height } = this.scale;
-        const baseSize = Math.min(width, height);
-
-        const titleSize = Math.max(40, Math.round(baseSize * 0.1));
-        const buttonSize = Math.max(32, Math.round(baseSize * 0.07));
-        const padX = Math.round(baseSize * 0.05);
-        const padY = Math.round(baseSize * 0.025);
-        const spacing = Math.round(baseSize * 0.15);
-
-        this.cameras.main.setSize(width, height);
+        const width = 1280;
+        const height = 720;
 
         this.add.rectangle(0, 0, width, height, 0x000000, 0.5).setOrigin(0);
 
-        this.add.text(width / 2, height / 2 - spacing, 'PAUSED', {
-            fontSize: `${titleSize}px`,
+        this.add.text(width / 2, height / 2 - 100, 'PAUSED', {
+            fontSize: '80px',
             color: '#ffffff',
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        const resumeButton = this.add.text(width / 2, height / 2 + spacing * 0.3, 'RESUME', {
-            fontSize: `${buttonSize}px`,
+        const resumeButton = this.add.text(width / 2, height / 2 + 40, 'RESUME', {
+            fontSize: '52px',
             color: '#00ff00',
             backgroundColor: '#000000',
-            padding: { x: padX, y: padY }
+            padding: { x: 30, y: 15 }
         })
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true });
 
-        const quitButton = this.add.text(width / 2, height / 2 + spacing * 1.2, 'QUIT', {
-            fontSize: `${buttonSize}px`,
+        const quitButton = this.add.text(width / 2, height / 2 + 150, 'QUIT', {
+            fontSize: '52px',
             color: '#ff0000',
             backgroundColor: '#000000',
-            padding: { x: padX, y: padY }
+            padding: { x: 30, y: 15 }
         })
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true });
@@ -75,9 +54,5 @@ export class PauseScene extends Phaser.Scene {
         this.scene.stop('GameScene');
         this.scene.start('MenuScene');
         this.scene.stop();
-    }
-
-    shutdown() {
-        this.scale.off('resize', this.handleResize, this);
     }
 }

@@ -10,8 +10,9 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     height: 720,
     backgroundColor: '#87CEEB',
     scale: {
-        mode: Phaser.Scale.EXPAND,
+        mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
+        expandParent: true,
     },
     physics: {
         default: 'arcade',

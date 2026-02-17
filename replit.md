@@ -21,5 +21,5 @@ A Phaser 3 endless runner game built with TypeScript and Vite.
 - `scripts/` - Utility scripts
 
 ## Recent Changes
-- 2026-02-17: Added on-screen Pause/Quit touch buttons to GameScene, mobile fullscreen scaling (EXPAND mode), resize handler, viewport meta updates
+- 2026-02-17: Fixed mobile: reverted to FIT mode (stable scaling), added on-screen Pause/Quit touch buttons, matching page background color, larger UI text
 - 2026-02-17: Initial Replit setup, added vite.config.ts for port 5000 and host 0.0.0.0
