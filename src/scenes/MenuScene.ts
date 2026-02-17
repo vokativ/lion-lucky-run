@@ -6,6 +6,16 @@ export class MenuScene extends Phaser.Scene {
     }
 
     create() {
+        this.buildLayout();
+        this.scale.on('resize', this.handleResize, this);
+    }
+
+    private handleResize() {
+        this.children.removeAll(true);
+        this.buildLayout();
+    }
+
+    private buildLayout() {
         const { width, height } = this.scale;
         const baseSize = Math.min(width, height);
 
@@ -13,6 +23,8 @@ export class MenuScene extends Phaser.Scene {
         const buttonSize = Math.max(48, Math.round(baseSize * 0.12));
         const padX = Math.round(baseSize * 0.06);
         const padY = Math.round(baseSize * 0.03);
+
+        this.cameras.main.setSize(width, height);
 
         this.add.text(width / 2, height * 0.35, 'Lion Train\nLucky Run', {
             fontSize: `${titleSize}px`,
@@ -37,5 +49,9 @@ export class MenuScene extends Phaser.Scene {
             this.scale.startFullscreen();
             this.scene.start('GameScene');
         });
+    }
+
+    shutdown() {
+        this.scale.off('resize', this.handleResize, this);
     }
 }

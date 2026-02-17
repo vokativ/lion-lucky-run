@@ -123,6 +123,7 @@ export class GameScene extends Phaser.Scene {
         const height = gameSize.height;
 
         this.cameras.main.setSize(width, height);
+        this.physics.world.setBounds(0, 0, width, height);
 
         this.background.setSize(width, height);
         const bgTexture = this.textures.get(this.backgroundKey).getSourceImage() as HTMLImageElement;
@@ -134,6 +135,10 @@ export class GameScene extends Phaser.Scene {
 
         this.pauseButton.setPosition(width - 20, 20);
         this.quitButton.setPosition(width - 20, 90);
+    }
+
+    shutdown() {
+        this.scale.off('resize', this.handleResize, this);
     }
 
     update(time: number, delta: number) {

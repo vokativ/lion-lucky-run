@@ -3,6 +3,7 @@ import { Stickers } from '../systems/StickerSystem';
 
 export class ResultsScene extends Phaser.Scene {
     private score: number = 0;
+    private unlockedSticker: string | null = null;
 
     constructor() {
         super('ResultsScene');
@@ -10,9 +11,23 @@ export class ResultsScene extends Phaser.Scene {
 
     init(data: { score: number }) {
         this.score = data.score || 0;
+        this.unlockedSticker = null;
+        if (this.score >= 50) {
+            this.unlockedSticker = Stickers.unlockRandomSticker();
+        }
     }
 
     create() {
+        this.buildLayout();
+        this.scale.on('resize', this.handleResize, this);
+    }
+
+    private handleResize() {
+        this.children.removeAll(true);
+        this.buildLayout();
+    }
+
+    private buildLayout() {
         const { width, height } = this.scale;
         const baseSize = Math.min(width, height);
 
@@ -22,6 +37,8 @@ export class ResultsScene extends Phaser.Scene {
         const buttonSize = Math.max(32, Math.round(baseSize * 0.08));
         const padX = Math.round(baseSize * 0.05);
         const padY = Math.round(baseSize * 0.025);
+
+        this.cameras.main.setSize(width, height);
 
         this.add.text(width / 2, height * 0.2, 'Game Over', {
             fontSize: `${titleSize}px`,
@@ -36,12 +53,7 @@ export class ResultsScene extends Phaser.Scene {
             color: '#ffffff'
         }).setOrigin(0.5);
 
-        let newSticker: string | null = null;
-        if (this.score >= 50) {
-            newSticker = Stickers.unlockRandomSticker();
-        }
-
-        if (newSticker) {
+        if (this.unlockedSticker) {
             this.add.text(width / 2, height * 0.45, 'New Sticker Unlocked!', {
                 fontSize: `${infoSize}px`,
                 color: '#ffff00',
@@ -49,7 +61,7 @@ export class ResultsScene extends Phaser.Scene {
                 strokeThickness: 4
             }).setOrigin(0.5);
 
-            this.add.text(width / 2, height * 0.55, newSticker, {
+            this.add.text(width / 2, height * 0.55, this.unlockedSticker, {
                 fontSize: `${infoSize}px`,
                 color: '#00ff00'
             }).setOrigin(0.5);
@@ -74,5 +86,9 @@ export class ResultsScene extends Phaser.Scene {
         restartButton.on('pointerdown', () => {
             this.scene.start('GameScene');
         });
+    }
+
+    shutdown() {
+        this.scale.off('resize', this.handleResize, this);
     }
 }

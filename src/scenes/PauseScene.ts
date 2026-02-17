@@ -6,6 +6,19 @@ export class PauseScene extends Phaser.Scene {
     }
 
     create() {
+        this.buildLayout();
+        this.scale.on('resize', this.handleResize, this);
+    }
+
+    private handleResize() {
+        this.children.removeAll(true);
+        if (this.input.keyboard) {
+            this.input.keyboard.removeAllListeners();
+        }
+        this.buildLayout();
+    }
+
+    private buildLayout() {
         const { width, height } = this.scale;
         const baseSize = Math.min(width, height);
 
@@ -14,6 +27,8 @@ export class PauseScene extends Phaser.Scene {
         const padX = Math.round(baseSize * 0.05);
         const padY = Math.round(baseSize * 0.025);
         const spacing = Math.round(baseSize * 0.15);
+
+        this.cameras.main.setSize(width, height);
 
         this.add.rectangle(0, 0, width, height, 0x000000, 0.5).setOrigin(0);
 
@@ -60,5 +75,9 @@ export class PauseScene extends Phaser.Scene {
         this.scene.stop('GameScene');
         this.scene.start('MenuScene');
         this.scene.stop();
+    }
+
+    shutdown() {
+        this.scale.off('resize', this.handleResize, this);
     }
 }
