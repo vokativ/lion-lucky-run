@@ -7,21 +7,28 @@ export class MenuScene extends Phaser.Scene {
 
     create() {
         const { width, height } = this.scale;
+        const baseSize = Math.min(width, height);
 
-        this.add.text(width / 2, height / 3, 'Lion Train Lucky Run', {
-            fontSize: '48px',
+        const titleSize = Math.max(32, Math.round(baseSize * 0.08));
+        const buttonSize = Math.max(48, Math.round(baseSize * 0.12));
+        const padX = Math.round(baseSize * 0.06);
+        const padY = Math.round(baseSize * 0.03);
+
+        this.add.text(width / 2, height * 0.35, 'Lion Train\nLucky Run', {
+            fontSize: `${titleSize}px`,
             color: '#ffffff',
             fontStyle: 'bold',
             stroke: '#000000',
-            strokeThickness: 6
+            strokeThickness: Math.round(titleSize * 0.12),
+            align: 'center'
         }).setOrigin(0.5);
 
-        const playButton = this.add.text(width / 2, height / 2, 'PLAY', {
-            fontSize: '64px',
+        const playButton = this.add.text(width / 2, height * 0.55, 'PLAY', {
+            fontSize: `${buttonSize}px`,
             color: '#00ff00',
             fontStyle: 'bold',
             backgroundColor: '#000000',
-            padding: { x: 20, y: 10 }
+            padding: { x: padX, y: padY }
         })
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true });
@@ -30,7 +37,5 @@ export class MenuScene extends Phaser.Scene {
             this.scale.startFullscreen();
             this.scene.start('GameScene');
         });
-
-        // Handle fullscreen fallback or "immersive" hints if needed
     }
 }
