@@ -14,8 +14,6 @@ export class GameScene extends Phaser.Scene {
     private scoreText!: Phaser.GameObjects.Text;
     private background!: Phaser.GameObjects.TileSprite;
     private backgroundKey: string = 'bg_sky';
-    private pauseButton!: Phaser.GameObjects.Text;
-    private quitButton!: Phaser.GameObjects.Text;
 
     constructor() {
         super('GameScene');
@@ -70,7 +68,7 @@ export class GameScene extends Phaser.Scene {
             .setScrollFactor(0)
             .setDepth(100)
             .setInteractive({ useHandCursor: true });
-        this.pauseButton = this.add.text(width - 20 - btnSize / 2, 20 + btnSize / 2, '| |', {
+        this.add.text(width - 20 - btnSize / 2, 20 + btnSize / 2, '| |', {
             fontSize: '32px',
             fontStyle: 'bold',
             color: '#ffffff',
@@ -83,7 +81,7 @@ export class GameScene extends Phaser.Scene {
             .setScrollFactor(0)
             .setDepth(100)
             .setInteractive({ useHandCursor: true });
-        this.quitButton = this.add.text(width - 20 - btnSize / 2, 20 + btnSize + 10 + btnSize / 2, 'X', {
+        this.add.text(width - 20 - btnSize / 2, 20 + btnSize + 10 + btnSize / 2, 'X', {
             fontSize: '36px',
             fontStyle: 'bold',
             color: '#ff6666',
