@@ -17,20 +17,20 @@ export class PauseScene extends Phaser.Scene {
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        const resumeButton = this.add.text(width / 2, height / 2 + 50, 'RESUME (P)', {
-            fontSize: '32px',
+        const resumeButton = this.add.text(width / 2, height / 2 + 50, 'RESUME', {
+            fontSize: '42px',
             color: '#00ff00',
             backgroundColor: '#000000',
-            padding: { x: 20, y: 10 }
+            padding: { x: 30, y: 15 }
         })
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true });
 
-        const quitButton = this.add.text(width / 2, height / 2 + 120, 'QUIT (Q)', {
-            fontSize: '32px',
+        const quitButton = this.add.text(width / 2, height / 2 + 140, 'QUIT', {
+            fontSize: '42px',
             color: '#ff0000',
             backgroundColor: '#000000',
-            padding: { x: 20, y: 10 }
+            padding: { x: 30, y: 15 }
         })
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true });

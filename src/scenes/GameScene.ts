@@ -16,6 +16,8 @@ export class GameScene extends Phaser.Scene {
     private scoreText!: Phaser.GameObjects.Text;
     private background!: Phaser.GameObjects.TileSprite;
     private backgroundKey: string = 'bg_sky';
+    private pauseButton!: Phaser.GameObjects.Text;
+    private quitButton!: Phaser.GameObjects.Text;
 
     constructor() {
         super('GameScene');
@@ -77,14 +79,61 @@ export class GameScene extends Phaser.Scene {
 
         this.fortuneMeter = new FortuneMeter(this, 20, 60);
 
+        this.pauseButton = this.add.text(width - 20, 20, '⏸', {
+            fontSize: '48px',
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            padding: { x: 12, y: 8 }
+        })
+            .setOrigin(1, 0)
+            .setScrollFactor(0)
+            .setDepth(100)
+            .setInteractive({ useHandCursor: true });
+
+        this.quitButton = this.add.text(width - 20, 90, '✕', {
+            fontSize: '48px',
+            color: '#ff6666',
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            padding: { x: 14, y: 8 }
+        })
+            .setOrigin(1, 0)
+            .setScrollFactor(0)
+            .setDepth(100)
+            .setInteractive({ useHandCursor: true });
+
+        this.pauseButton.on('pointerdown', () => {
+            this.togglePause();
+        });
+        this.quitButton.on('pointerdown', () => {
+            this.quitGame();
+        });
+
         // Collisions
         this.physics.add.overlap(this.player, this.spawner.getGroup(), this.handleCollision, undefined, this);
 
         // Events
         // this.events.on('lucky-burst-start', () => this.audioSystem.playSFX('sfx_burst'));
 
-        // Fade in
+        this.scale.on('resize', this.handleResize, this);
+
         this.cameras.main.fadeIn(500, 0, 0, 0);
+    }
+
+    private handleResize(gameSize: Phaser.Structs.Size) {
+        const width = gameSize.width;
+        const height = gameSize.height;
+
+        this.cameras.main.setSize(width, height);
+
+        this.background.setSize(width, height);
+        const bgTexture = this.textures.get(this.backgroundKey).getSourceImage() as HTMLImageElement;
+        const bgWidth = bgTexture ? bgTexture.width : 1280;
+        const bgHeight = bgTexture ? bgTexture.height : 720;
+        const scaleX = width / bgWidth;
+        const scaleY = height / bgHeight;
+        this.background.setTileScale(Math.max(scaleX, scaleY), Math.max(scaleX, scaleY));
+
+        this.pauseButton.setPosition(width - 20, 20);
+        this.quitButton.setPosition(width - 20, 90);
     }
 
     update(time: number, delta: number) {

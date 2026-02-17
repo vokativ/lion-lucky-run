@@ -61,16 +61,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         });
         this.burstParticles.startFollow(this);
 
-        // Interaction
         scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-            if (pointer.isDown) {
+            if (pointer.isDown && this.scene.input.hitTestPointer(pointer).length === 0) {
                 this.targetY = pointer.y;
-                this.targetX = pointer.x; // ADDED: Update X on move
+                this.targetX = pointer.x;
             }
         });
         scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-            this.targetY = pointer.y;
-            this.targetX = pointer.x; // ADDED: Update X on down
+            if (this.scene.input.hitTestPointer(pointer).length === 0) {
+                this.targetY = pointer.y;
+                this.targetX = pointer.x;
+            }
         });
 
         // Listen for burst events

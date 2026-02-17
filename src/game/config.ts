@@ -10,7 +10,7 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     height: 720,
     backgroundColor: '#87CEEB',
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.EXPAND,
         autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     physics: {
