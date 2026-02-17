@@ -64,31 +64,38 @@ export class GameScene extends Phaser.Scene {
 
         this.fortuneMeter = new FortuneMeter(this, 20, 60);
 
-        this.pauseButton = this.add.text(width - 20, 20, '⏸', {
-            fontSize: '48px',
-            backgroundColor: 'rgba(0,0,0,0.4)',
-            padding: { x: 12, y: 8 }
-        })
-            .setOrigin(1, 0)
+        const btnSize = 70;
+
+        const pauseBg = this.add.rectangle(width - 20 - btnSize / 2, 20 + btnSize / 2, btnSize, btnSize, 0x000000, 0.5)
             .setScrollFactor(0)
             .setDepth(100)
             .setInteractive({ useHandCursor: true });
+        this.pauseButton = this.add.text(width - 20 - btnSize / 2, 20 + btnSize / 2, '| |', {
+            fontSize: '32px',
+            fontStyle: 'bold',
+            color: '#ffffff',
+        })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(101);
 
-        this.quitButton = this.add.text(width - 20, 90, '✕', {
-            fontSize: '48px',
+        const quitBg = this.add.rectangle(width - 20 - btnSize / 2, 20 + btnSize + 10 + btnSize / 2, btnSize, btnSize, 0x000000, 0.5)
+            .setScrollFactor(0)
+            .setDepth(100)
+            .setInteractive({ useHandCursor: true });
+        this.quitButton = this.add.text(width - 20 - btnSize / 2, 20 + btnSize + 10 + btnSize / 2, 'X', {
+            fontSize: '36px',
+            fontStyle: 'bold',
             color: '#ff6666',
-            backgroundColor: 'rgba(0,0,0,0.4)',
-            padding: { x: 14, y: 8 }
         })
-            .setOrigin(1, 0)
+            .setOrigin(0.5)
             .setScrollFactor(0)
-            .setDepth(100)
-            .setInteractive({ useHandCursor: true });
+            .setDepth(101);
 
-        this.pauseButton.on('pointerdown', () => {
+        pauseBg.on('pointerdown', () => {
             this.togglePause();
         });
-        this.quitButton.on('pointerdown', () => {
+        quitBg.on('pointerdown', () => {
             this.quitGame();
         });
 
