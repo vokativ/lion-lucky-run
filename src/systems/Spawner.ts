@@ -1,6 +1,12 @@
 import Phaser from 'phaser';
 import { Settings, Difficulties } from '../storage/Settings';
 
+/**
+ * Spawner System
+ *
+ * Handles the generation of obstacles and collectibles.
+ * Uses different patterns (Line, Stagger, Single) to create variety.
+ */
 export class Spawner {
     private scene: Phaser.Scene;
     private group: Phaser.Physics.Arcade.Group;
@@ -12,8 +18,9 @@ export class Spawner {
         this.createTextures();
 
         // Start spawning loops
+        // Spawns a new pattern or item every 1.5 seconds
         scene.time.addEvent({
-            delay: 1500, // every 1.5s
+            delay: 1500,
             callback: this.spawnSequence,
             callbackScope: this,
             loop: true
@@ -38,6 +45,10 @@ export class Spawner {
         });
     }
 
+    /**
+     * Generates placeholder textures if assets are missing.
+     * In a full game, these should be loaded in BootScene.
+     */
     private createTextures() {
         /**
          * ASSET REPLACEMENT:
@@ -94,6 +105,11 @@ export class Spawner {
         return this.group;
     }
 
+    /**
+     * Cleanup loop.
+     * Removes objects that have moved off-screen to save memory.
+     * Updates position of attached effects (glow).
+     */
     update(_time: number, _delta: number) {
         const toDestroy: any[] = [];
 
@@ -106,6 +122,7 @@ export class Spawner {
                 glow.setPosition(child.x, child.y);
             }
 
+            // Mark for destruction if off-screen (left side)
             if (child.x < -100) {
                 toDestroy.push(child);
             }
@@ -114,14 +131,17 @@ export class Spawner {
         toDestroy.forEach(child => child.destroy());
     }
 
+    /**
+     * Decides which pattern to spawn based on probability.
+     */
     private spawnSequence() {
         const rand = Math.random();
         if (rand > 0.6) {
-            this.spawnPattern('line');
+            this.spawnPattern('line'); // 40% chance for a line of items
         } else if (rand > 0.3) {
-            this.spawnPattern('stagger');
+            this.spawnPattern('stagger'); // 30% chance for a zig-zag
         } else {
-            this.spawnItem(); // Now mostly spawns good items
+            this.spawnItem(); // 30% chance for a single item (mostly good items)
         }
     }
 
@@ -145,6 +165,9 @@ export class Spawner {
         }
     }
 
+    /**
+     * Spawns a group of good items in a specific formation.
+     */
     private spawnPattern(pattern: 'line' | 'stagger') {
         const { width, height } = this.scene.scale;
         const count = 3;

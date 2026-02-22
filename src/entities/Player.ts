@@ -2,16 +2,25 @@ import Phaser from 'phaser';
 import { LionTail } from './LionTail';
 import { Settings } from '../storage/Settings';
 
+/**
+ * Player Entity (The Lion)
+ *
+ * Handles player movement, states (Bonked, Bursting), and visuals (Tail, Particles).
+ *
+ * Controls:
+ * - Keyboard: Arrow keys directly set velocity.
+ * - Touch/Mouse: Player moves towards the last touched position.
+ */
 export class Player extends Phaser.Physics.Arcade.Sprite {
     private readonly SPEED = 300;
     private targetY: number;
-    private targetX: number; // ADDED: Track X target for pointer
-    private isBonked: boolean = false;
-    private isBursting: boolean = false;
+    private targetX: number; // Track X target for pointer
+    private isBonked: boolean = false; // "Dizzy" state after hitting obstacle
+    private isBursting: boolean = false; // "Lucky Burst" invincibility state
     private bonkTimer?: Phaser.Time.TimerEvent;
     private burstParticles?: Phaser.GameObjects.Particles.ParticleEmitter;
 
-    // New property
+    // The lion's tail follows the head
     private tail!: LionTail;
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -29,7 +38,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.setDepth(10); // Ensure head is above tail
 
         this.targetY = y;
-        this.targetX = x; // ADDED: Init targetX
+        this.targetX = x;
 
         // Initialize Tail
         this.tail = new LionTail(scene, this);
@@ -54,6 +63,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         });
         this.burstParticles.startFollow(this);
 
+        // Touch/Mouse Input Handling
+        // We track the pointer position to move the player towards it
         scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
             if (pointer.isDown && this.scene.input.hitTestPointer(pointer).length === 0) {
                 this.targetY = pointer.y;
@@ -72,6 +83,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         scene.events.on('lucky-burst-end', () => this.stopBurst());
     }
 
+    /**
+     * Update loop for the player.
+     * Handles movement, tail updates, and visual effects.
+     */
     update(_time: number, _delta: number, cursors?: Phaser.Types.Input.Keyboard.CursorKeys, fortunePercent: number = 0, isSystemBursting: boolean = false) {
         try {
             // STATE SYNC SAFETY CHECK
@@ -112,16 +127,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
             this.setVelocityX(0);
 
-            // Keyboard
+            // Handle Movement
             if (cursors) {
+                // Keyboard: Y-Axis
                 if (cursors.up.isDown) {
                     this.setVelocityY(-this.SPEED);
-                    this.targetY = this.y;
+                    this.targetY = this.y; // Update target so touch logic doesn't override immediately
                 } else if (cursors.down.isDown) {
                     this.setVelocityY(this.SPEED);
                     this.targetY = this.y;
                 } else {
-                    // Touch/Mouse Constant Speed Follow
+                    // Touch/Mouse: Move towards target position (set by pointer events)
                     // Y-AXIS
                     const distY = this.targetY - this.y;
                     if (Math.abs(distY) > 10) {
@@ -145,12 +161,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
                     }
                 }
 
-                // Keyboard overrides
+                // Keyboard: X-Axis (Overrides Touch)
                 if (cursors.left.isDown) {
-                    this.setVelocityX(-this.SPEED); // REMOVED 0.5 multiplier
+                    this.setVelocityX(-this.SPEED);
                     this.targetX = this.x; // Sync target to prevent lerp conflict
                 } else if (cursors.right.isDown) {
-                    this.setVelocityX(this.SPEED); // REMOVED 0.5 multiplier (already was 1.0 equivalent effectively, but keeping consistent)
+                    this.setVelocityX(this.SPEED);
                     this.targetX = this.x;
                 }
             }
@@ -159,17 +175,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
+    /**
+     * Called when the player hits an obstacle without invincibility.
+     * Causes the player to be stunned ("Bonked") and drift back slightly.
+     */
     bonk() {
         if (this.isBonked || this.isBursting) return;
 
         this.isBonked = true;
-        this.setAlpha(0.5);
-        this.setTint(0xff0000);
+        this.setAlpha(0.5); // Visual feedback: Semi-transparent
+        this.setTint(0xff0000); // Visual feedback: Red tint
         if (this.tail) {
             this.tail.setTint(0xff0000);
         }
         this.setVelocityY(0);
 
+        // Recover after 500ms
         if (this.bonkTimer) this.bonkTimer.remove();
         this.bonkTimer = this.scene.time.delayedCall(500, () => {
             this.isBonked = false;
@@ -180,7 +201,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             }
         });
 
-        // Bounce back slightly
+        // Bounce back slightly (knockback effect)
         this.scene.tweens.add({
             targets: this,
             x: this.x - 20,
