@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { LionTail } from './LionTail';
+import { Settings } from '../storage/Settings';
 
 /**
  * Player Entity (The Lion)
@@ -23,10 +24,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     private tail!: LionTail;
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        super(scene, x, y, 'lion');
-
-        // Note: The 'lion' texture is expected to be loaded in the BootScene.
-        this.setTexture('lion');
+        // Init with appropriate color
+        const color = Settings.getColor();
+        const textureKey = color === 'red' ? 'lion' : `lion_${color}`;
+        super(scene, x, y, textureKey);
+        this.setTexture(textureKey);
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
@@ -50,11 +52,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
 
         this.burstParticles = scene.add.particles(0, 0, 'sparkle', {
-            speed: { min: 50, max: 100 },
-            scale: { start: 1, end: 0 },
+            speed: { min: 100, max: 250 },
+            scale: { start: 1.5, end: 0 },
+            tint: [0xffd700, 0xffaa00, 0xffffff], // Golden sparkles
             blendMode: 'ADD',
-            lifespan: 500,
+            lifespan: 800,
             frequency: -1, // Don't emit by default
+            x: { min: -40, max: 40 },
+            y: { min: -40, max: 40 }
         });
         this.burstParticles.startFollow(this);
 
@@ -77,8 +82,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         scene.events.on('lucky-burst-start', () => this.startBurst());
         scene.events.on('lucky-burst-end', () => this.stopBurst());
     }
-
-    private hue: number = 0;
 
     /**
      * Update loop for the player.
@@ -108,13 +111,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
                 this.tail.update(direction);
             }
 
-            // Rainbow effect during burst
+            // Golden glow effect during burst
             if (this.isBursting) {
-                this.hue = (this.hue + 0.005 * _delta) % 1; // Cycle hue
-                const color = Phaser.Display.Color.HSLToColor(this.hue, 1, 0.5);
-                this.setTint(color.color);
+                // Ensure texture is golden during burst, instead of tinting
+                this.setTexture('lion_golden');
                 if (this.tail) {
-                    this.tail.setTint(color.color);
+                    this.tail.setToGolden();
                 }
             }
 
@@ -211,16 +213,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     private startBurst() {
         this.isBursting = true;
-        this.hue = 0; // Reset rainbow cycle
+
+        // Add native Phaser glow to the player
+        this.preFX?.clear();
+        this.preFX?.addGlow(0xffd700, 4, 0, false, 0.1, 30);
+
         if (this.burstParticles && this.scene && this.scene.textures.exists('sparkle')) {
-            this.burstParticles.setFrequency(20);
+            this.burstParticles.setFrequency(40); // 1 particle every 40ms (~25 per second) instead of 200/s
         }
     }
 
     private stopBurst() {
         this.isBursting = false;
+
+        // Revert texture to the selected color setting
+        const color = Settings.getColor();
+        this.setTexture(color === 'red' ? 'lion' : `lion_${color}`);
+
+        this.preFX?.clear();
         this.clearTint();
         if (this.tail) {
+            this.tail.restoreColor();
             this.tail.clearTint();
         }
         if (this.burstParticles) {

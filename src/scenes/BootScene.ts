@@ -36,13 +36,26 @@ export class BootScene extends Phaser.Scene {
 
         // Sprites
         this.load.image('lion', 'assets/sprites/lion.png');
+        this.load.image('lion_blue', 'assets/sprites/lion_blue.png');
+        this.load.image('lion_golden', 'assets/sprites/lion_golden.png');
+        this.load.image('lion_jade', 'assets/sprites/lion_jade.png');
+
+        this.load.image('body_segment', 'assets/sprites/body_segment.png');
+        this.load.image('body_segment_blue', 'assets/sprites/body_segment_blue.png');
+        this.load.image('body_segment_golden', 'assets/sprites/body_segment_golden.png');
+        this.load.image('body_segment_jade', 'assets/sprites/body_segment_jade.png');
+
         this.load.image('tail_segment', 'assets/sprites/tail_segment.png');
+        this.load.image('tail_segment_blue', 'assets/sprites/tail_segment_blue.png');
+        this.load.image('tail_segment_golden', 'assets/sprites/tail_segment_golden.png');
+        this.load.image('tail_segment_jade', 'assets/sprites/tail_segment_jade.png');
+
         this.load.image('orange', 'assets/sprites/orange.png');
         this.load.image('hongbao', 'assets/sprites/hongbao.png');
         this.load.image('lantern', 'assets/sprites/lantern.png');
         this.load.image('ghost', 'assets/sprites/ghost.png');
         this.load.image('stone', 'assets/sprites/stone.png');
-        this.load.image('body_segment', 'assets/sprites/body_segment.png');
+
 
         // Audio (Assuming these exist or will be added)
         // this.load.audio('bgm_main', 'assets/audio/bgm_main.mp3');
