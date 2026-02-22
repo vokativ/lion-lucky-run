@@ -4,6 +4,18 @@ import { Spawner } from '../systems/Spawner';
 import { FortuneSystem } from '../systems/FortuneSystem';
 import { FortuneMeter } from '../ui/FortuneMeter';
 
+/**
+ * GameScene
+ *
+ * The main gameplay scene where the endless runner action happens.
+ * It manages:
+ * - The player entity (Lion)
+ * - Spawning obstacles and collectibles (Spawner)
+ * - The fortune/score system
+ * - Background scrolling and parallax effects
+ * - Input handling (Pause, Quit)
+ * - Collision detection
+ */
 export class GameScene extends Phaser.Scene {
     private player!: Player;
     private spawner!: Spawner;
@@ -20,6 +32,10 @@ export class GameScene extends Phaser.Scene {
         super('GameScene');
     }
 
+    /**
+     * Initialize the game scene.
+     * Sets up the background, player, spawner, UI, and input listeners.
+     */
     create() {
         const width = 1280;
         const height = 720;
@@ -103,12 +119,23 @@ export class GameScene extends Phaser.Scene {
         this.cameras.main.fadeIn(500, 0, 0, 0);
     }
 
+    /**
+     * Game Loop.
+     * Updates game objects every frame.
+     * @param time Current time in milliseconds
+     * @param delta Time elapsed since last frame in milliseconds
+     */
     update(time: number, delta: number) {
+        // Scroll background to create the illusion of forward movement
         this.background.tilePositionX += 0.1 * delta;
 
+        // Update player logic (movement, animation, fortune effects)
         this.player.update(time, delta, this.cursors, this.fortuneSystem.getFortunePercent(), this.fortuneSystem.isBursting());
+
+        // Update spawner (manage obstacle/item lifecycle)
         this.spawner.update(time, delta);
 
+        // Update UI
         this.fortuneMeter.updateBar(
             this.fortuneSystem.getFortunePercent(),
             this.fortuneSystem.isBursting(),
@@ -116,6 +143,11 @@ export class GameScene extends Phaser.Scene {
         );
     }
 
+    /**
+     * Handle collisions between the player and spawned objects.
+     * @param _player The player object (unused here as we know it's the player)
+     * @param object The object collided with (collectible or obstacle)
+     */
     private handleCollision(_player: any, object: any) {
         if (!object.active) return;
         if (this.isGameOver) return;
@@ -123,19 +155,25 @@ export class GameScene extends Phaser.Scene {
         const type = object.getData('type');
 
         if (type === 'collectible') {
+            // Good Item: Increase score and fortune
             this.score += 10;
             this.scoreText.setText(`Score: ${this.score}`);
             this.fortuneSystem.addFortune(10);
             object.destroy();
         } else if (type === 'obstacle') {
+            // Bad Item: Check if invincible
             if (this.player.getIsBursting()) {
+                // Invincible: Destroy obstacle safely
                 object.destroy();
             } else {
+                // Vulnerable: Check fortune buffer
                 if (this.fortuneSystem.getFortune() > 0) {
+                    // Has Fortune: Lose it all but survive ("Bonk")
                     this.player.bonk();
                     this.fortuneSystem.resetFortune();
                     object.destroy();
                 } else {
+                    // No Fortune: Game Over
                     this.isGameOver = true;
                     object.destroy();
                     this.gameOver();
