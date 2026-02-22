@@ -46,6 +46,17 @@ export class MenuScene extends Phaser.Scene {
 
         let lionSprites: Phaser.GameObjects.Sprite[] = [];
 
+        const applyLionSelectionStyle = (selectedKey: string) => {
+            colors.forEach((col, i) => {
+                lionSprites[i].preFX?.clear();
+                lionSprites[i].setScale(1.5);
+                if (selectedKey === col.key) {
+                    lionSprites[i].preFX?.addGlow(0xffffff, 4, 0, false, 0.1, 30);
+                    lionSprites[i].setScale(1.7);
+                }
+            });
+        };
+
         colors.forEach((c, index) => {
             const xPos = width / 2 + (index - 1) * 160;
 
@@ -56,23 +67,14 @@ export class MenuScene extends Phaser.Scene {
 
             lionSprites.push(sprite);
 
-            if (Settings.getColor() === c.key) {
-                sprite.preFX?.addGlow(0xffffff, 4, 0, false, 0.1, 30);
-                sprite.setScale(1.7); // Make selected slightly bigger
-            }
-
             sprite.on('pointerdown', () => {
                 Settings.setColor(c.key);
-                colors.forEach((col, i) => {
-                    lionSprites[i].preFX?.clear();
-                    lionSprites[i].setScale(1.5);
-                    if (Settings.getColor() === col.key) {
-                        lionSprites[i].preFX?.addGlow(0xffffff, 4, 0, false, 0.1, 30);
-                        lionSprites[i].setScale(1.7);
-                    }
-                });
+                applyLionSelectionStyle(c.key);
             });
         });
+
+        // Apply initial state
+        applyLionSelectionStyle(Settings.getColor());
 
         // Difficulty Label
         this.add.text(width / 2, height * 0.70, 'How Fast?', {
@@ -91,6 +93,18 @@ export class MenuScene extends Phaser.Scene {
 
         let diffTextObjects: Phaser.GameObjects.Text[] = [];
 
+        const applyDiffSelectionStyle = (selectedKey: string) => {
+            difficulties.forEach((diff, i) => {
+                let t = diffTextObjects[i];
+                t.preFX?.clear();
+                t.setScale(1.0);
+                if (selectedKey === diff.key) {
+                    t.setScale(1.2);
+                    t.preFX?.addGlow(0xffffff, 2, 0, false, 0.1, 20);
+                }
+            });
+        };
+
         difficulties.forEach((d, index) => {
             const xPos = width / 2 + (index - 1) * 220;
             const btn = this.add.text(xPos, height * 0.78, d.label, {
@@ -105,24 +119,14 @@ export class MenuScene extends Phaser.Scene {
 
             diffTextObjects.push(btn);
 
-            // Set initial state
-            if (Settings.getDifficulty() === d.key) {
-                btn.setScale(1.2);
-                btn.preFX?.addGlow(0xffffff, 2, 0, false, 0.1, 20);
-            }
-
             btn.on('pointerdown', () => {
                 Settings.setDifficulty(d.key);
-                diffTextObjects.forEach((t, i) => {
-                    t.preFX?.clear();
-                    t.setScale(1.0);
-                    if (Settings.getDifficulty() === difficulties[i].key) {
-                        t.setScale(1.2);
-                        t.preFX?.addGlow(0xffffff, 2, 0, false, 0.1, 20);
-                    }
-                });
+                applyDiffSelectionStyle(d.key);
             });
         });
+
+        // Apply initial state
+        applyDiffSelectionStyle(Settings.getDifficulty());
 
         // Giant Play Button
         const playButton = this.add.text(width / 2, height * 0.92, 'PLAY NOW!', {
