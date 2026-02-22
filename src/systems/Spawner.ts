@@ -30,11 +30,11 @@ export class Spawner {
         // Super Hard = 750
         // Normal = 2250 (3x less spawning)
         // Easy = 3000 (4x less spawning)
-        let obsDelay = 2250;
+        let obsDelay: number;
         const diff = Settings.getDifficulty();
         if (diff === Difficulties.SUPER_HARD) obsDelay = 750;
         else if (diff === Difficulties.EASY) obsDelay = 3000;
-        else if (diff === Difficulties.NORMAL) obsDelay = 2250;
+        else obsDelay = 2250; // Defaults to NORMAL if not SUPER_HARD or EASY
 
         // 5x Obstacle Spawn Rate Event (modified by difficulty)
         scene.time.addEvent({
