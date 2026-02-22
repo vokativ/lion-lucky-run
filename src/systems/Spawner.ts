@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Settings, Difficulties } from '../storage/Settings';
 
 export class Spawner {
     private scene: Phaser.Scene;
@@ -10,10 +11,28 @@ export class Spawner {
         // Create placeholder textures
         this.createTextures();
 
-        // Start spawning loop
+        // Start spawning loops
         scene.time.addEvent({
             delay: 1500, // every 1.5s
             callback: this.spawnSequence,
+            callbackScope: this,
+            loop: true
+        });
+
+        // Calculate difficulty delay
+        // Super Hard = 750
+        // Normal = 2250 (3x less spawning)
+        // Easy = 3000 (4x less spawning)
+        let obsDelay = 2250;
+        const diff = Settings.getDifficulty();
+        if (diff === Difficulties.SUPER_HARD) obsDelay = 750;
+        else if (diff === Difficulties.EASY) obsDelay = 3000;
+        else if (diff === Difficulties.NORMAL) obsDelay = 2250;
+
+        // 5x Obstacle Spawn Rate Event (modified by difficulty)
+        scene.time.addEvent({
+            delay: obsDelay,
+            callback: this.spawnDedicatedObstacle,
             callbackScope: this,
             loop: true
         });
@@ -81,7 +100,8 @@ export class Spawner {
         this.group.getChildren().forEach((child: any) => {
             if (!child.active) return;
 
-            const glow = child.getData('glow') as Phaser.GameObjects.PointLight;
+            // Only pointlights (obstacles) need manual position updates now
+            const glow = child.getData('glowPointLight') as Phaser.GameObjects.PointLight;
             if (glow) {
                 glow.setPosition(child.x, child.y);
             }
@@ -96,12 +116,32 @@ export class Spawner {
 
     private spawnSequence() {
         const rand = Math.random();
-        if (rand > 0.7) {
+        if (rand > 0.6) {
             this.spawnPattern('line');
-        } else if (rand > 0.5) {
+        } else if (rand > 0.3) {
             this.spawnPattern('stagger');
         } else {
-            this.spawnItem();
+            this.spawnItem(); // Now mostly spawns good items
+        }
+    }
+
+    private spawnDedicatedObstacle() {
+        // Spawn 1-2 obstacles at a time to drastically increase presence
+        const count = Math.random() > 0.5 ? 1 : 2;
+        const { width, height } = this.scene.scale;
+
+        for (let i = 0; i < count; i++) {
+            const y = Phaser.Math.Between(50, height - 50);
+            const texture = Phaser.Utils.Array.GetRandom(['ghost', 'stone']);
+            const item = this.group.create(width + 50 + (i * 100), y, texture);
+
+            item.setScale(texture === 'ghost' ? 0.12 : 0.2);
+            item.body.updateFromGameObject();
+            item.setDepth(10);
+
+            this.addGlow(item, texture);
+            item.setVelocityX(-200);
+            item.setData('type', 'obstacle');
         }
     }
 
@@ -115,7 +155,7 @@ export class Spawner {
         for (let i = 0; i < count; i++) {
             const y = pattern === 'line' ? startY : startY + (i % 2 === 0 ? spacing : -spacing);
             const item = this.group.create(width + 50 + (i * 60), y, texture);
-            item.setScale(0.2); // All items are high-res 256x256 now
+            item.setScale(0.2); // Original scale
             item.body.updateFromGameObject();
 
             this.addGlow(item, texture); // Apply glow
@@ -128,7 +168,9 @@ export class Spawner {
     private spawnItem() {
         const { width, height } = this.scene.scale;
         const y = Phaser.Math.Between(50, height - 50);
-        const type = Math.random() > 0.4 ? 'collectible' : 'obstacle';
+
+        // Vast majority are regular collectibles here, since obstacles have their own timer
+        const type = Math.random() > 0.1 ? 'collectible' : 'obstacle';
 
         let texture = 'orange';
         if (type === 'collectible') {
@@ -139,12 +181,11 @@ export class Spawner {
 
         const item = this.group.create(width + 50, y, texture);
         if (texture === 'ghost') {
-            item.setScale(0.12); // Ghost is 256x256, so 0.12 makes it approx 30px
+            item.setScale(0.12); // Ghost is 256x256
         } else {
-            item.setScale(0.2); // All items are high-res 256x256 now
+            item.setScale(0.2); // Other items are 256x256
         }
         item.body.updateFromGameObject(); // Update physics body size
-        // if (texture === 'stone') { ... } // No longer needed as all are scaled
         item.setDepth(10); // Ensure item is above glow
 
         this.addGlow(item, texture); // Apply glow
@@ -155,29 +196,46 @@ export class Spawner {
 
     private addGlow(item: Phaser.GameObjects.Sprite, texture: string) {
         // Prevent double glow
-        if (item.getData('glow')) {
+        if (item.getData('hasGlowMarker')) {
             return;
         }
+        item.setData('hasGlowMarker', true);
 
         // Glow logic based on item type/texture
         const isBadItem = ['stone', 'ghost'].includes(texture);
 
         if (isBadItem) {
-            // Poisonous green glow for obstacles - very subtle
-            const glow = this.scene.add.pointlight(item.x, item.y, 0x00ff00, 32, 0.1);
+            // Menacing DARK red looping glow
+            const glow = this.scene.add.pointlight(item.x, item.y, 0x8b0000, 35, 0.4);
             glow.setDepth(5); // Behind item
-            item.setData('glow', glow);
+            item.setData('glowPointLight', glow);
             item.on('destroy', () => {
                 glow.destroy();
+            });
+
+            // Pulsing glow animation
+            this.scene.tweens.add({
+                targets: glow,
+                radius: 55,
+                intensity: 0.8,
+                duration: 700,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+
+            // Floating obstacle animation
+            this.scene.tweens.add({
+                targets: item,
+                y: item.y - 20,
+                duration: 1200,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
             });
         } else {
-            // Golden glow for good items - optimized for overlapping patterns
-            const glow = this.scene.add.pointlight(item.x, item.y, 0xffd700, 32, 0.15);
-            glow.setDepth(5); // Behind item
-            item.setData('glow', glow);
-            item.on('destroy', () => {
-                glow.destroy();
-            });
+            // Golden aura for good items - preFX is much more reliable and won't get lost
+            item.preFX?.addGlow(0xffd700, 3, 0, false, 0.1, 20);
         }
     }
 }

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Settings } from '../storage/Settings';
 
 export class LionTail extends Phaser.GameObjects.Container {
     private segments: Phaser.GameObjects.Sprite[] = [];
@@ -8,15 +9,21 @@ export class LionTail extends Phaser.GameObjects.Container {
     private target: Phaser.GameObjects.Sprite;
     private currentLength: number = 5; // Start short
 
+    private bodyKey: string = 'body_segment';
+    private tailKey: string = 'tail_segment';
+    private isGolden: boolean = false;
+
     constructor(scene: Phaser.Scene, target: Phaser.GameObjects.Sprite) {
         super(scene, 0, 0);
         this.target = target;
         scene.add.existing(this);
 
+        this.updateBaseKeys();
+
         // Initialize max segments but hide unused ones
         // Use body_segment for middle parts, tail_segment only at the very end
         for (let i = 0; i < this.MAX_SEGMENTS; i++) {
-            const segment = scene.add.sprite(target.x, target.y, 'body_segment');
+            const segment = scene.add.sprite(target.x, target.y, this.bodyKey);
             // Gradual scale down: start at 0.9 (close to head), end at 0.5
             const scale = 0.9 - (i / this.MAX_SEGMENTS) * 0.4;
             segment.setScale(scale);
@@ -30,6 +37,36 @@ export class LionTail extends Phaser.GameObjects.Container {
 
     setLength(length: number) {
         this.currentLength = Phaser.Math.Clamp(length, 5, this.MAX_SEGMENTS);
+    }
+
+    private updateBaseKeys() {
+        const color = Settings.getColor();
+        this.bodyKey = color === 'red' ? 'body_segment' : `body_segment_${color}`;
+        this.tailKey = color === 'red' ? 'tail_segment' : `tail_segment_${color}`;
+    }
+
+    setToGolden() {
+        this.isGolden = true;
+        this.updateTextures();
+        // Removed preFX glow on all segments because 30 hardware glow passes tanks performance
+    }
+
+    restoreColor() {
+        this.isGolden = false;
+        this.updateBaseKeys();
+        this.updateTextures();
+        // No preFX to clear anymore
+    }
+
+    private updateTextures() {
+        this.segments.forEach((s, i) => {
+            const isTip = (i === this.lastTipIndex && s.visible);
+            if (this.isGolden) {
+                s.setTexture(isTip ? 'tail_segment_golden' : 'body_segment_golden');
+            } else {
+                s.setTexture(isTip ? this.tailKey : this.bodyKey);
+            }
+        });
     }
 
     setTint(color: number) {
@@ -89,9 +126,9 @@ export class LionTail extends Phaser.GameObjects.Container {
                     // Texture key: tail_segment ONLY for the last VISIBLE segment
                     const isFinalVisible = (i === this.currentLength - 1);
                     if (isFinalVisible && i !== this.lastTipIndex) {
-                        segment.setTexture('tail_segment');
+                        segment.setTexture(this.isGolden ? 'tail_segment_golden' : this.tailKey);
                         if (this.lastTipIndex >= 0 && this.segments[this.lastTipIndex]) {
-                            this.segments[this.lastTipIndex].setTexture('body_segment');
+                            this.segments[this.lastTipIndex].setTexture(this.isGolden ? 'body_segment_golden' : this.bodyKey);
                         }
                         this.lastTipIndex = i;
                     }
