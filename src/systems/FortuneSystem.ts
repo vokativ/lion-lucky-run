@@ -7,6 +7,15 @@ export const GameModes = {
 
 export type GameMode = typeof GameModes[keyof typeof GameModes];
 
+/**
+ * FortuneSystem
+ *
+ * Manages the "Fortune" resource.
+ * - Fortune acts like a combo/power meter.
+ * - Collecting items fills the meter.
+ * - Filling the meter triggers "Lucky Burst" (invincibility).
+ * - Getting hit drains fortune (or ends game if 0).
+ */
 export class FortuneSystem {
     private scene: Phaser.Scene;
     private fortune: number = 0;
@@ -18,7 +27,12 @@ export class FortuneSystem {
         this.scene = scene;
     }
 
+    /**
+     * Adds (or subtracts) fortune.
+     * @param amount Amount to add. Can be negative.
+     */
     addFortune(amount: number) {
+        // Can't gain fortune while bursting (already maxed)
         if (this.isBurstActive) return;
 
         // Sonic logic: infinite negative amount clears fortune
@@ -34,6 +48,10 @@ export class FortuneSystem {
         }
     }
 
+    /**
+     * Activates the Lucky Burst mode.
+     * Emits event 'lucky-burst-start'.
+     */
     private startLuckyBurst() {
         try {
             if (this.isBurstActive) return;

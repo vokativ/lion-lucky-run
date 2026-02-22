@@ -1,76 +1,87 @@
-# Lion Lucky Run
+# Lion Lucky Run - A Lunar New Year Adventure
 
-A vibrant, endless runner game featuring a lucky lion, built with Phaser 3, TypeScript, and Vite.
+Welcome to **Lion Lucky Run**! Embark on a vibrant, endless running adventure featuring a traditional Lion Dance costume. This game is designed to celebrate the joy and traditions of the Lunar New Year (Chinese New Year).
 
-## 🎮 Game Description
+## 🏮 About Chinese New Year (Lunar New Year)
 
-Control the Lucky Lion as it runs through various themed environments! Dodge obstacles, collect coins for high scores, and grab special items for power-ups. The game features:
-- **Endless Runner Gameplay:** The further you run, the faster it gets!
-- **Multiple Themes:** Experience different environments like Forest, Sky, and Singapore.
-- **Power-ups:** Collect items for invincibility, score multipliers, and more.
-- **Dynamic Visuals:** smooth animations and particle effects.
+For those new to the celebration, **Chinese New Year** (or Lunar New Year) is one of the most important holidays in many Asian cultures. It marks the beginning of the new year on the traditional lunisolar calendar.
 
-## 🛠️ Tech Stack
+Here are some key symbols you'll see in the game:
+*   **Lion Dance:** A form of traditional dance where performers mimic a lion's movements in a lion costume to bring good luck and fortune.
+*   **Red Envelopes (Hongbao):** Red packets filled with money, given as gifts to symbolize good wishes and luck for the new year.
+*   **Oranges/Tangerines:** Symbols of abundance and good fortune because the word for orange sounds like "gold" or "success" in Chinese.
+*   **Fortune/Luck:** A central theme of the holiday. Doing good deeds and following traditions brings "fortune" for the year ahead!
 
-- **Phaser 3:** Game framework
-- **TypeScript:** Language
-- **Vite:** Build tool and dev server
+## 🎮 Why is this fun?
 
-## 🚀 Getting Started
+*   **Festive Atmosphere:** Run through colorful environments inspired by the holiday, from starry skies to Singapore skylines!
+*   **Fast-Paced Action:** The game speeds up as you go! Can you keep up?
+*   **"Lucky Burst" Mode:** Collect enough fortune to trigger a rainbow-colored invincibility mode—it's super satisfying to smash through obstacles!
+*   **Kid-Friendly:** Simple controls and forgiving mechanics (you don't lose immediately if you hit an obstacle, unless your fortune runs out!) make it great for all ages.
 
-### Prerequisites
+## 🕹️ How to Play
 
-- Node.js (v16 or higher recommended)
-- npm (comes with Node.js)
+### Controls
 
-### Installation
+You can play on a computer or a touchscreen device.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/vokativ/lion-lucky-run.git
-   cd lion-lucky-run
-   ```
+**Keyboard:**
+*   **Arrow Keys (⬆️ ⬇️ ⬅️ ➡️):** Move the Lion up, down, left, or right.
+*   **P or ESC:** Pause the game.
+*   **Q:** Quit to the main menu.
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+**Touchscreen / Mouse:**
+*   **Tap/Click & Hold:** The Lion will follow your finger or cursor.
+*   **Tap Buttons:** Use the on-screen pause and quit buttons.
 
-### Development
+### Game Mechanics
 
-To start the local development server:
+1.  **Collect Good Items:**
+    *   🍊 **Oranges**, 🧧 **Red Envelopes (Hongbao)**, and 🏮 **Lanterns**.
+    *   Collecting these increases your **Score** and fills your **Fortune Meter**.
 
-```bash
-npm run dev
-```
+2.  **Avoid Bad Items:**
+    *   👻 **Ghosts** and 🪨 **Stones**.
+    *   Hitting these will make the Lion "Bonk" (get dizzy) and lose all collected Fortune.
+    *   **Warning:** If you have **0 Fortune** and hit an obstacle, it's Game Over!
 
-Open your browser and navigate to the URL shown in the terminal (usually `http://localhost:5173`).
+3.  **Lucky Burst (Invincibility):**
+    *   Fill your Fortune Meter completely to trigger **Lucky Burst**!
+    *   During this time, you are **invincible**, move faster, and sparkle with rainbow colors.
+    *   Smash through obstacles without penalty!
 
-### Building for Production
+## 🛠️ Technical Details
 
-To build the game for production (outputs to `dist/` folder):
+This game is built using:
+- **Phaser 3:** A fast, fun, and free open-source HTML5 game framework.
+- **TypeScript:** For type-safe code.
+- **Vite:** Next Generation Frontend Tooling.
 
-```bash
-npm run build
-```
+### Installation & Development
 
-### Preview Production Build
+If you want to run the code locally or modify the game:
 
-To preview the production build locally:
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/vokativ/lion-lucky-run.git
+    cd lion-lucky-run
+    ```
 
-```bash
-npm run preview
-```
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-## ☁️ Deployment (Replit)
+3.  **Start Development Server:**
+    ```bash
+    npm run dev
+    ```
+    Open your browser to `http://localhost:5173`.
 
-This project is ready for deployment on Replit.
-
-1. **Import:** Import this repository into Replit.
-2. **Install:** Replit should automatically detect `package.json` and install dependencies. If not, run `npm install` in the Shell.
-3. **Run:** Click the "Run" button. The `.replit` config (if configured) or the `start` script will be used. 
-   - We have included a `start` script (`vite preview --host`) which serves the built app.
-   - For development mode in Replit, you can use `npm run dev -- --host` via the Shell.
+4.  **Build for Production:**
+    ```bash
+    npm run build
+    ```
 
 ## 📝 License
 
