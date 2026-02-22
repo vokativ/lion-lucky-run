@@ -14,6 +14,7 @@ export class GameScene extends Phaser.Scene {
     private scoreText!: Phaser.GameObjects.Text;
     private background!: Phaser.GameObjects.TileSprite;
     private backgroundKey: string = 'bg_sky';
+    private isGameOver: boolean = false;
 
     constructor() {
         super('GameScene');
@@ -117,9 +118,9 @@ export class GameScene extends Phaser.Scene {
 
     private handleCollision(_player: any, object: any) {
         if (!object.active) return;
+        if (this.isGameOver) return;
 
         const type = object.getData('type');
-        const texture = object.texture.key;
 
         if (type === 'collectible') {
             this.score += 10;
@@ -128,16 +129,15 @@ export class GameScene extends Phaser.Scene {
             object.destroy();
         } else if (type === 'obstacle') {
             if (this.player.getIsBursting()) {
-                console.log(`Destroying ${texture} during burst`);
                 object.destroy();
             } else {
                 if (this.fortuneSystem.getFortune() > 0) {
-                    console.log('Surviving hit, resetting fortune');
                     this.player.bonk();
                     this.fortuneSystem.resetFortune();
                     object.destroy();
                 } else {
-                    console.log('Game Over triggered');
+                    this.isGameOver = true;
+                    object.destroy();
                     this.gameOver();
                 }
             }
@@ -157,6 +157,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private gameOver() {
+        this.isGameOver = true;
         this.cameras.main.fadeOut(500, 0, 0, 0);
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
             this.scene.start('ResultsScene', { score: this.score });

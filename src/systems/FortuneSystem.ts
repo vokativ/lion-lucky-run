@@ -38,13 +38,11 @@ export class FortuneSystem {
         try {
             if (this.isBurstActive) return;
 
-            console.log('FortuneSystem: Starting Lucky Burst');
             this.isBurstActive = true;
             this.scene.events.emit('lucky-burst-start');
 
             // Burst duration (5 seconds)
             this.burstTimer = this.scene.time.delayedCall(5000, () => {
-                console.log('FortuneSystem: Timer expired, stopping burst');
                 this.stopLuckyBurst();
             });
         } catch (e) {
@@ -54,7 +52,6 @@ export class FortuneSystem {
 
     private stopLuckyBurst() {
         try {
-            console.log('FortuneSystem: Stopping Lucky Burst');
             this.isBurstActive = false;
             // Safety Net: Leave 20% fortune so player doesn't die immediately if 0 items are near
             this.fortune = this.MAX_FORTUNE * 0.2;

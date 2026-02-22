@@ -76,7 +76,8 @@ export class Spawner {
     }
 
     update(_time: number, _delta: number) {
-        // Cleanup off-screen items
+        const toDestroy: any[] = [];
+
         this.group.getChildren().forEach((child: any) => {
             if (!child.active) return;
 
@@ -86,9 +87,11 @@ export class Spawner {
             }
 
             if (child.x < -100) {
-                child.destroy(); // Listener will handle glow destruction
+                toDestroy.push(child);
             }
         });
+
+        toDestroy.forEach(child => child.destroy());
     }
 
     private spawnSequence() {

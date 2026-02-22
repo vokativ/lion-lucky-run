@@ -87,10 +87,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             // If the system says we are not bursting, but player thinks we are, FORCE STOP.
             // This fixes the issue where rainbow tint persists after burst.
             if (this.isBursting && !isSystemBursting) {
-                console.warn('Player: State mismatch detected. Forcing stop burst.');
                 this.stopBurst();
             } else if (!this.isBursting && isSystemBursting) {
-                console.warn('Player: State mismatch detected. Forcing start burst.');
                 this.startBurst();
             }
 
@@ -203,7 +201,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     private startBurst() {
-        console.log('Player: startBurst received');
         this.isBursting = true;
         this.hue = 0; // Reset rainbow cycle
         if (this.burstParticles && this.scene && this.scene.textures.exists('sparkle')) {
@@ -212,7 +209,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     private stopBurst() {
-        console.log('Player: stopBurst received');
         this.isBursting = false;
         this.clearTint();
         if (this.tail) {

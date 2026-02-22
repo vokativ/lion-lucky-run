@@ -42,6 +42,7 @@ export class LionTail extends Phaser.GameObjects.Container {
 
     private currentDirection: number = 1;
     private spacingFactor: number = 1.0;
+    private lastTipIndex: number = -1;
 
     update(targetDirection: number = 1) {
         try {
@@ -87,7 +88,13 @@ export class LionTail extends Phaser.GameObjects.Container {
 
                     // Texture key: tail_segment ONLY for the last VISIBLE segment
                     const isFinalVisible = (i === this.currentLength - 1);
-                    segment.setTexture(isFinalVisible ? 'tail_segment' : 'body_segment');
+                    if (isFinalVisible && i !== this.lastTipIndex) {
+                        segment.setTexture('tail_segment');
+                        if (this.lastTipIndex >= 0 && this.segments[this.lastTipIndex]) {
+                            this.segments[this.lastTipIndex].setTexture('body_segment');
+                        }
+                        this.lastTipIndex = i;
+                    }
 
                     const index = (i + 1) * this.SEGMENT_SPACING;
                     if (index < this.history.length) {
