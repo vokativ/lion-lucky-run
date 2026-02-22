@@ -9,24 +9,29 @@ export class BootScene extends Phaser.Scene {
         // Load assets here
         this.load.setBaseURL('./');
 
-        // Resolution detection
-        const { width } = this.scale;
-        let assetFolder = '4k'; // Force 4k for now since downscaling failed
-        console.log('Forcing asset folder to 4k due to environment issues');
+        // Loading progress bar
+        const cx = this.cameras.main.width / 2;
+        const cy = this.cameras.main.height / 2;
+        const barW = 400;
+        const barH = 28;
 
-        // if (width > 3000) {
-        //     assetFolder = '4k';
-        // } else if (width > 1280) {
-        //     assetFolder = 'laptop';
-        // }
+        this.add.rectangle(cx, cy, barW + 4, barH + 4, 0x000000, 0.6);
+        const fill = this.add.rectangle(cx - barW / 2, cy, 0, barH, 0xffd700).setOrigin(0, 0.5);
+        const label = this.add.text(cx, cy - 36, 'Loading...', {
+            fontSize: '26px',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 3,
+        }).setOrigin(0.5);
 
-        console.log(`Detected width ${width}, loading assets from: ${assetFolder}`);
+        this.load.on('progress', (v: number) => { fill.width = barW * v; });
+        this.load.on('complete', () => { fill.destroy(); label.destroy(); });
+
+        const assetFolder = '4k';
 
         const backgrounds = ['bg_sky', 'bg_forest', 'bg_rainbow', 'bg_singapore', 'bg_dragon', 'bg_legend'];
         backgrounds.forEach(bg => {
-            const path = `assets/backgrounds/${assetFolder}/${bg}.png`;
-            console.log(`Loading background: ${bg} from ${path}`);
-            this.load.image(bg, path);
+            this.load.image(bg, `assets/backgrounds/${assetFolder}/${bg}.png`);
         });
 
         // Sprites
