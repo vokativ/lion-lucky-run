@@ -6,6 +6,7 @@ import { PauseScene } from '../scenes/PauseScene';
 
 export const GameConfig: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
+    parent: 'app',
     width: 1280,
     height: 720,
     backgroundColor: '#87CEEB',
@@ -13,6 +14,7 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         expandParent: true,
+        parent: 'app',
     },
     physics: {
         default: 'arcade',
