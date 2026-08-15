@@ -58,7 +58,6 @@ def build_itch_cover():
         
     bg = Image.alpha_composite(bg, overlay)
     
-    # Load sprites
     lion = load_cropped_sprite("public/assets/sprites/lion.png", target_height=360)
     lion_golden = load_cropped_sprite("public/assets/sprites/lion_golden.png", target_height=260)
     
@@ -69,13 +68,9 @@ def build_itch_cover():
     ghost = load_cropped_sprite("public/assets/sprites/ghost.png", target_height=170)
     stone = load_cropped_sprite("public/assets/sprites/stone.png", target_height=150)
     
-    # Place main Red Lion on left-center
     bg.paste(lion, (140, 360), lion)
-    
-    # Place Golden Lion on right-center (bursting aura)
     bg.paste(lion_golden, (900, 420), lion_golden)
     
-    # Floating festive items around
     bg.paste(lantern.rotate(12, expand=True), (560, 290), lantern.rotate(12, expand=True))
     bg.paste(hongbao.rotate(-15, expand=True), (520, 520), hongbao.rotate(-15, expand=True))
     bg.paste(orange.rotate(10, expand=True), (720, 440), orange.rotate(10, expand=True))
@@ -126,10 +121,10 @@ def build_itch_cover():
     print("Saved media/itch/itch-cover.png (630x500) and itch-cover-2x.png (1260x1000)")
 
 # -------------------------------------------------------------
-# 2. BUILD ITCH.IO BANNER (960x400 & 1920x800 @2x)
+# 2. BUILD BANNER HEADER (960x400 & 1920x800 @2x)
 # -------------------------------------------------------------
 def build_itch_banner():
-    print("Generating Itch.io Banner Header (1920x800 @2x)...")
+    print("Generating Banner Header (1920x800 @2x)...")
     W, H = 1920, 800
     
     bg = load_cropped_sprite("public/assets/backgrounds/4k/bg_dragon.png", target_width=W)
@@ -145,7 +140,6 @@ def build_itch_banner():
         
     bg = Image.alpha_composite(bg, overlay)
     
-    # 4 Lions Parade across bottom
     lion_blue = load_cropped_sprite("public/assets/sprites/lion_blue.png", target_height=260)
     lion_jade = load_cropped_sprite("public/assets/sprites/lion_jade.png", target_height=260)
     lion_red = load_cropped_sprite("public/assets/sprites/lion.png", target_height=310)
@@ -196,16 +190,18 @@ def build_itch_banner():
     
     bg_2x = bg.convert("RGB")
     bg_2x.save("media/itch/itch-banner-2x.png", "PNG", quality=95)
+    bg_2x.save("media/screenshots/banner-2x.png", "PNG", quality=95)
     
     bg_1x = bg_2x.resize((960, 400), Image.Resampling.LANCZOS)
     bg_1x.save("media/itch/itch-banner.png", "PNG", quality=95)
+    bg_1x.save("media/screenshots/banner.png", "PNG", quality=95)
     print("Saved media/itch/itch-banner.png (960x400) and itch-banner-2x.png (1920x800)")
 
 # -------------------------------------------------------------
-# 3. BUILD ITCH.IO AVATAR / ICON (500x500)
+# 3. BUILD AVATAR / ICON (500x500)
 # -------------------------------------------------------------
 def build_itch_avatar():
-    print("Generating Itch.io Avatar / Game Icon (500x500)...")
+    print("Generating Avatar / Game Icon (500x500)...")
     W, H = 500, 500
     
     bg = Image.new("RGBA", (W, H), (139, 0, 0, 255))
@@ -244,22 +240,22 @@ def build_itch_avatar():
     print("Saved media/itch/itch-avatar.png and media/screenshots/icon.png (500x500)")
 
 # -------------------------------------------------------------
-# 4. BUILD RESPONSIVE DEVICE SHOWCASE (1600x900)
+# 4. BUILD 3-DEVICE RESPONSIVE SHOWCASE (1600x950)
 # -------------------------------------------------------------
 def build_responsive_showcase():
-    print("Generating Responsive Device Showcase (1600x900)...")
-    W, H = 1600, 900
+    print("Generating 3-Device Responsive Showcase (1600x950)...")
+    W, H = 1600, 950
     
-    canvas = Image.new("RGBA", (W, H), (18, 22, 30, 255))
+    canvas = Image.new("RGBA", (W, H), (16, 20, 28, 255))
     d = ImageDraw.Draw(canvas)
     
-    font_head = ImageFont.truetype("/System/Library/Fonts/Supplemental/Impact.ttf", 54)
-    font_sub = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 24)
-    font_label = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 26)
-    font_desc = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 18)
+    font_head = ImageFont.truetype("/System/Library/Fonts/Supplemental/Impact.ttf", 52)
+    font_sub = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 22)
+    font_label = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 22)
+    font_desc = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 16)
     
     draw_text_with_effects(
-        d, (W // 2, 55),
+        d, (W // 2, 50),
         "CROSS-PLATFORM & FULLY RESPONSIVE",
         font_head,
         fill_color="#FFE600",
@@ -270,64 +266,98 @@ def build_responsive_showcase():
         anchor="mm"
     )
     
-    d.text((W // 2, 102), "Smooth 60 FPS gameplay on Desktop, Chromebooks, Tablets, and Smartphones", font=font_sub, fill="#C0D0E0", anchor="mm")
-    
-    # 1. Desktop Mockup (Left Side)
-    desk_x, desk_y = 70, 150
-    desk_w, desk_h = 920, 540
-    
-    d.rounded_rectangle([(desk_x, desk_y), (desk_x + desk_w, desk_y + desk_h)], radius=14, fill=(35, 40, 50, 255), outline=(70, 80, 100, 255), width=2)
-    d.rounded_rectangle([(desk_x, desk_y), (desk_x + desk_w, desk_y + 40)], radius=14, fill=(45, 52, 65, 255))
-    d.rectangle([(desk_x, desk_y + 25), (desk_x + desk_w, desk_y + 40)], fill=(45, 52, 65, 255))
-    
-    d.ellipse([(desk_x + 18, desk_y + 14), (desk_x + 30, desk_y + 26)], fill="#FF5F56")
-    d.ellipse([(desk_x + 38, desk_y + 14), (desk_x + 50, desk_y + 26)], fill="#FFBD2E")
-    d.ellipse([(desk_x + 58, desk_y + 14), (desk_x + 70, desk_y + 26)], fill="#27C93F")
-    
-    d.rounded_rectangle([(desk_x + 100, desk_y + 8), (desk_x + desk_w - 30, desk_y + 32)], radius=8, fill=(25, 30, 40, 255))
-    d.text((desk_x + 120, desk_y + 20), "https://vokativ.itch.io/lion-lucky-run", font=font_desc, fill="#A0B0C0", anchor="lm")
+    d.text((W // 2, 94), "Desktop 16:9  •  Mobile Landscape 19.5:9  •  Mobile Portrait 9:19.5 Touch Controls", font=font_sub, fill="#C0D0E0", anchor="mm")
     
     gameplay_shot = Image.open("media/screenshots/screenshot-gameplay-action.png").convert("RGBA")
-    gameplay_scaled = gameplay_shot.resize((desk_w - 8, desk_h - 48), Image.Resampling.LANCZOS)
-    canvas.paste(gameplay_scaled, (desk_x + 4, desk_y + 44))
     
-    d.text((desk_x + desk_w // 2, desk_y + desk_h + 35), "Desktop / Web Browser (16:9 Landscape)", font=font_label, fill="#FFFFFF", anchor="mm")
-    d.text((desk_x + desk_w // 2, desk_y + desk_h + 70), "Arrow Keys / WASD Controls  •  Fullscreen Support  •  1280x720 Native Canvas", font=font_desc, fill="#9FB5CC", anchor="mm")
+    # ---------------------------------------------------------
+    # DEVICE 1: Desktop Browser Window (Top-Left: 820x440)
+    # ---------------------------------------------------------
+    desk_x, desk_y = 60, 130
+    desk_w, desk_h = 820, 440
     
-    # 2. Mobile Mockup (Right Side)
-    mob_x, mob_y = 1080, 140
-    mob_w, mob_h = 340, 680
+    d.rounded_rectangle([(desk_x, desk_y), (desk_x + desk_w, desk_y + desk_h)], radius=12, fill=(30, 35, 45, 255), outline=(65, 75, 95, 255), width=2)
+    d.rounded_rectangle([(desk_x, desk_y), (desk_x + desk_w, desk_y + 36)], radius=12, fill=(40, 48, 60, 255))
+    d.rectangle([(desk_x, desk_y + 20), (desk_x + desk_w, desk_y + 36)], fill=(40, 48, 60, 255))
     
-    phone_body = Image.new("RGBA", (mob_w, mob_h), (25, 25, 30, 255))
+    d.ellipse([(desk_x + 16, desk_y + 12), (desk_x + 28, desk_y + 24)], fill="#FF5F56")
+    d.ellipse([(desk_x + 36, desk_y + 12), (desk_x + 48, desk_y + 24)], fill="#FFBD2E")
+    d.ellipse([(desk_x + 56, desk_y + 12), (desk_x + 68, desk_y + 24)], fill="#27C93F")
+    
+    d.rounded_rectangle([(desk_x + 90, desk_y + 7), (desk_x + desk_w - 25, desk_y + 29)], radius=6, fill=(20, 25, 35, 255))
+    d.text((desk_x + 110, desk_y + 18), "https://github.com/vokativ/lion-lucky-run", font=font_desc, fill="#90A0B0", anchor="lm")
+    
+    gameplay_desk = gameplay_shot.resize((desk_w - 8, desk_h - 44), Image.Resampling.LANCZOS)
+    canvas.paste(gameplay_desk, (desk_x + 4, desk_y + 40))
+    
+    # ---------------------------------------------------------
+    # DEVICE 2: Mobile Landscape (Bottom-Left: 580x280)
+    # ---------------------------------------------------------
+    land_x, land_y = 60, 595
+    land_w, land_h = 580, 280
+    
+    land_phone = Image.new("RGBA", (land_w, land_h), (25, 28, 35, 255))
+    d_land = ImageDraw.Draw(land_phone)
+    d_land.rounded_rectangle([(0, 0), (land_w - 1, land_h - 1)], radius=32, fill=(20, 22, 28, 255), outline=(85, 90, 105, 255), width=3)
+    
+    ls_x, ls_y = 10, 10
+    ls_w, ls_h = land_w - 20, land_h - 20
+    
+    ls_screen = Image.new("RGBA", (ls_w, ls_h), (135, 206, 235, 255))
+    
+    # Fit entire 16:9 canvas cleanly inside landscape phone screen (height-constrained)
+    scale_fit = min(ls_w / 1280.0, ls_h / 720.0)
+    gw, gh = int(1280 * scale_fit), int(720 * scale_fit)
+    gameplay_land = gameplay_shot.resize((gw, gh), Image.Resampling.LANCZOS)
+    ls_screen.paste(gameplay_land, ((ls_w - gw) // 2, (ls_h - gh) // 2))
+    
+    # Notch on left edge
+    d_land_screen = ImageDraw.Draw(ls_screen)
+    d_land_screen.rounded_rectangle([(0, ls_h // 2 - 25), (12, ls_h // 2 + 25)], radius=6, fill=(0, 0, 0, 255))
+    
+    land_phone.paste(ls_screen, (ls_x, ls_y))
+    canvas.paste(land_phone, (land_x, land_y), land_phone)
+    
+    # Labels for landscape phone
+    d.text((land_x + land_w + 30, land_y + 55), "Mobile Landscape (19.5:9 Widescreen)", font=font_label, fill="#FFFFFF", anchor="lm")
+    d.text((land_x + land_w + 30, land_y + 92), "• Full widescreen viewport with auto-centering", font=font_desc, fill="#9FB5CC", anchor="lm")
+    d.text((land_x + land_w + 30, land_y + 122), "• Smooth touch drag-to-follow & on-screen HUD", font=font_desc, fill="#9FB5CC", anchor="lm")
+    d.text((land_x + land_w + 30, land_y + 152), "• 60 FPS in Safari, Chrome & Firefox Mobile", font=font_desc, fill="#9FB5CC", anchor="lm")
+    
+    # ---------------------------------------------------------
+    # DEVICE 3: Mobile Portrait Smartphone (Right Side: 360x745)
+    # ---------------------------------------------------------
+    mob_x, mob_y = 1140, 130
+    mob_w, mob_h = 360, 745
+    
+    phone_body = Image.new("RGBA", (mob_w, mob_h), (25, 28, 35, 255))
     d_phone = ImageDraw.Draw(phone_body)
+    d_phone.rounded_rectangle([(0, 0), (mob_w - 1, mob_h - 1)], radius=45, fill=(20, 22, 28, 255), outline=(85, 90, 105, 255), width=4)
     
-    d_phone.rounded_rectangle([(0, 0), (mob_w - 1, mob_h - 1)], radius=45, fill=(20, 20, 25, 255), outline=(90, 95, 110, 255), width=4)
+    ps_x, ps_y = 12, 14
+    ps_w, ps_h = mob_w - 24, mob_h - 28
     
-    screen_x, screen_y = 12, 14
-    screen_w, screen_h = mob_w - 24, mob_h - 28
+    ps_screen = Image.new("RGBA", (ps_w, ps_h), (135, 206, 235, 255))
     
-    mob_screen = Image.new("RGBA", (screen_w, screen_h), (135, 206, 235, 255))
+    # Center gameplay inside vertical screen
+    gameplay_mob = gameplay_shot.resize((ps_w, int(ps_w * 720 / 1280)), Image.Resampling.LANCZOS)
+    ps_screen.paste(gameplay_mob, (0, (ps_h - gameplay_mob.height) // 2))
     
-    gameplay_mob = gameplay_shot.resize((screen_w, int(screen_w * 720 / 1280)), Image.Resampling.LANCZOS)
-    mob_screen.paste(gameplay_mob, (0, (screen_h - gameplay_mob.height) // 2))
+    d_ps_screen = ImageDraw.Draw(ps_screen)
+    d_ps_screen.rounded_rectangle([(30, ps_h - 120), (ps_w - 30, ps_h - 65)], radius=15, fill=(0, 0, 0, 190), outline="#FFD700", width=2)
+    d_ps_screen.text((ps_w // 2, ps_h - 92), "TOUCH & DRAG TO STEER", font=ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 16), fill="#FFD700", anchor="mm")
     
-    d_mob_screen = ImageDraw.Draw(mob_screen)
-    d_mob_screen.rounded_rectangle([(30, screen_h - 110), (screen_w - 30, screen_h - 55)], radius=15, fill=(0, 0, 0, 180), outline="#FFD700", width=2)
-    d_mob_screen.text((screen_w // 2, screen_h - 82), "TOUCH & DRAG TO STEER", font=ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 16), fill="#FFD700", anchor="mm")
+    d_phone.rounded_rectangle([(mob_w // 2 - 45, ps_y + 8), (mob_w // 2 + 45, ps_y + 26)], radius=9, fill=(0, 0, 0, 255))
+    d_phone.rounded_rectangle([(mob_w // 2 - 50, ps_y + ps_h - 10), (mob_w // 2 + 50, ps_y + ps_h - 6)], radius=3, fill=(255, 255, 255, 200))
     
-    phone_body.paste(mob_screen, (screen_x, screen_y))
-    
-    d_phone.rounded_rectangle([(mob_w // 2 - 45, screen_y + 8), (mob_w // 2 + 45, screen_y + 26)], radius=9, fill=(0, 0, 0, 255))
-    d_phone.rounded_rectangle([(mob_w // 2 - 50, screen_y + screen_h - 10), (mob_w // 2 + 50, screen_y + screen_h - 6)], radius=3, fill=(255, 255, 255, 200))
-    
+    phone_body.paste(ps_screen, (ps_x, ps_y))
     canvas.paste(phone_body, (mob_x, mob_y), phone_body)
     
-    d.text((mob_x + mob_w // 2, mob_y + mob_h + 35), "Mobile / Tablet (Touch Responsive)", font=font_label, fill="#FFFFFF", anchor="mm")
-    d.text((mob_x + mob_w // 2, mob_y + mob_h + 70), "Smooth Drag-to-Follow Touch  •  Responsive Auto-Scale", font=font_desc, fill="#9FB5CC", anchor="mm")
+    d.text((mob_x + mob_w // 2, mob_y + mob_h + 30), "Mobile Portrait (One-Handed Touch)", font=font_label, fill="#FFFFFF", anchor="mm")
     
     canvas.convert("RGB").save("media/screenshots/showcase-responsive-devices.png", "PNG", quality=95)
     canvas.convert("RGB").save("media/itch/itch-showcase-responsive.png", "PNG", quality=95)
-    print("Saved media/screenshots/showcase-responsive-devices.png (1600x900)")
+    print("Saved media/screenshots/showcase-responsive-devices.png (1600x950)")
 
 if __name__ == "__main__":
     build_itch_cover()

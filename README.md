@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./media/itch/itch-banner.png" alt="Lion Train Lucky Run Banner" width="100%">
+  <img src="./media/screenshots/banner.png" alt="Lion Train Lucky Run Banner" width="100%">
 </p>
 
 <h1 align="center">🏮 Lion Lucky Run - A Lunar New Year Adventure</h1>
@@ -15,7 +15,6 @@
   <img src="https://img.shields.io/badge/Vite-7.3-646CFF.svg" alt="Vite">
   <img src="https://img.shields.io/badge/Platform-Web%20%7C%20Mobile%20%7C%20Desktop-orange.svg" alt="Platforms">
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License">
-  <img src="https://img.shields.io/badge/itch.io-Ready-fa5c5c.svg" alt="Itch.io Ready">
 </p>
 
 ---
@@ -100,34 +99,6 @@ Key cultural symbols featured in **Lion Lucky Run**:
 
 ---
 
-## 📦 Itch.io Store Assets & Upload Guide
-
-A complete, ready-to-upload store package with pre-rendered assets and store metadata is included:
-
-* 📄 **Store Listing Guide:** See [`ITCH_IO_METADATA.md`](./ITCH_IO_METADATA.md) for tags, descriptions, category settings, and theme hex colors.
-* 🖼️ **Visual Assets (`/media/itch/`):**
-  * `itch-cover.png` (`630x500`) & `itch-cover-2x.png` (`1260x1000` @2x)
-  * `itch-banner.png` (`960x400`) & `itch-banner-2x.png` (`1920x800` @2x)
-  * `itch-avatar.png` (`500x500` Icon)
-  * `itch-showcase-responsive.png` (`1600x900`)
-
-### Packaging for Itch.io:
-
-```bash
-# 1. Build and package the production zip
-npm run package:itch
-
-# Output generated: lion-lucky-run-itch.zip (~1.3 MB)
-```
-
-1. Create or open your game project on [itch.io](https://itch.io/game/new).
-2. Set **Kind of project** to `HTML`.
-3. Upload `lion-lucky-run-itch.zip` and check **"This file will be played in the browser"**.
-4. Set Viewport dimensions to `1280 x 720`, enable **Fullscreen**, and check **Mobile friendly**.
-5. Upload cover and banner art from `media/itch/`, paste the description from [`ITCH_IO_METADATA.md`](./ITCH_IO_METADATA.md), and publish!
-
----
-
 ## 🛠️ Local Development & Scripts
 
 ```bash
@@ -142,15 +113,6 @@ npm run build
 
 # Preview production build locally
 npm run preview
-
-# Generate production zip for itch.io
-npm run package:itch
-
-# Automated marketing screenshot capture via headless browser
-node scripts/capture_game_screens.mjs
-
-# Re-render composite marketing graphics and itch covers
-python3 scripts/build_marketing_assets.py
 ```
 
 ---
@@ -160,16 +122,12 @@ python3 scripts/build_marketing_assets.py
 ```text
 lion-lucky-run/
 ├── index.html                   # Entry point with responsive viewport canvas
-├── vite.config.ts               # Vite configuration (relative base './' for itch.io)
-├── ITCH_IO_METADATA.md          # Complete itch.io listing metadata & store guide
+├── vite.config.ts               # Vite configuration (relative base './')
+├── ITCH_IO_METADATA.md          # Complete store listing metadata & guide
 ├── media/
-│   ├── itch/                    # Itch.io store assets (cover, banner, avatar)
-│   │   ├── itch-cover.png       # 630x500 Cover art
-│   │   ├── itch-cover-2x.png    # 1260x1000 Retina cover art
-│   │   ├── itch-banner.png      # 960x400 Header banner
-│   │   ├── itch-banner-2x.png   # 1920x800 Header banner
-│   │   └── itch-avatar.png      # 500x500 Game avatar / icon
+│   ├── itch/                    # Store assets (covers, banner, avatar)
 │   └── screenshots/             # In-game captures & responsive showcase
+│       ├── banner.png           # Header banner
 │       ├── screenshot-gameplay-action.png
 │       ├── screenshot-lucky-burst.png
 │       ├── screenshot-menu-selection.png
