@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
+import { AudioSystem } from '../systems/AudioSystem';
+import { Settings } from '../storage/Settings';
 
 export class PauseScene extends Phaser.Scene {
+    private audioSystem!: AudioSystem;
+
     constructor() {
         super('PauseScene');
     }
@@ -9,34 +13,63 @@ export class PauseScene extends Phaser.Scene {
         const width = 1280;
         const height = 720;
 
-        this.add.rectangle(0, 0, width, height, 0x000000, 0.5).setOrigin(0);
+        this.audioSystem = new AudioSystem(this);
 
-        this.add.text(width / 2, height / 2 - 100, 'PAUSED', {
-            fontSize: '80px',
+        this.add.rectangle(0, 0, width, height, 0x000000, 0.6).setOrigin(0);
+
+        this.add.text(width / 2, height / 2 - 120, 'PAUSED', {
+            fontSize: '76px',
             color: '#ffffff',
-            fontStyle: 'bold'
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 8
         }).setOrigin(0.5);
 
-        const resumeButton = this.add.text(width / 2, height / 2 + 40, 'RESUME', {
-            fontSize: '52px',
-            color: '#00ff00',
-            backgroundColor: '#000000',
-            padding: { x: 30, y: 15 }
+        // Sound toggle
+        const soundBtn = this.add.text(width / 2, height / 2 - 30, `Sound: ${Settings.isSoundEnabled() ? 'ON 🔊' : 'OFF 🔇'}`, {
+            fontSize: '32px',
+            color: '#ffd700',
+            backgroundColor: '#00000088',
+            padding: { x: 20, y: 8 }
         })
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true });
 
-        const quitButton = this.add.text(width / 2, height / 2 + 150, 'QUIT', {
-            fontSize: '52px',
-            color: '#ff0000',
-            backgroundColor: '#000000',
-            padding: { x: 30, y: 15 }
+        soundBtn.on('pointerdown', () => {
+            const enabled = Settings.toggleSound();
+            soundBtn.setText(`Sound: ${enabled ? 'ON 🔊' : 'OFF 🔇'}`);
+            if (enabled) {
+                this.audioSystem.playButton();
+            }
+        });
+
+        const resumeButton = this.add.text(width / 2 - 130, height / 2 + 80, 'RESUME', {
+            fontSize: '44px',
+            color: '#ffffff',
+            backgroundColor: '#2b9348',
+            padding: { x: 26, y: 14 }
         })
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true });
 
-        resumeButton.on('pointerdown', () => this.resume());
-        quitButton.on('pointerdown', () => this.quit());
+        const quitButton = this.add.text(width / 2 + 130, height / 2 + 80, 'QUIT', {
+            fontSize: '44px',
+            color: '#ffffff',
+            backgroundColor: '#d62828',
+            padding: { x: 26, y: 14 }
+        })
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true });
+
+        resumeButton.on('pointerdown', () => {
+            this.audioSystem.playButton();
+            this.resume();
+        });
+
+        quitButton.on('pointerdown', () => {
+            this.audioSystem.playButton();
+            this.quit();
+        });
 
         if (this.input.keyboard) {
             this.input.keyboard.once('keydown-P', () => this.resume());

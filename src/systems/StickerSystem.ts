@@ -18,21 +18,29 @@ export class StickerSystem {
     }
 
     private load() {
-        const saved = localStorage.getItem(this.STORAGE_KEY);
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                if (Array.isArray(data)) {
-                    this.unlockedStickers = new Set(data);
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                const saved = window.localStorage.getItem(this.STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (Array.isArray(data)) {
+                        this.unlockedStickers = new Set(data);
+                    }
                 }
-            } catch (e) {
-                console.error('Failed to load stickers', e);
             }
+        } catch (e) {
+            console.warn('Failed to load stickers, using empty set', e);
         }
     }
 
     private save() {
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(Array.from(this.unlockedStickers)));
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                window.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(Array.from(this.unlockedStickers)));
+            }
+        } catch (e) {
+            console.warn('Failed to save stickers', e);
+        }
     }
 
     unlockSticker(id: string) {

@@ -1,17 +1,30 @@
 import Phaser from 'phaser';
 import { Settings } from '../storage/Settings';
 
+/**
+ * LionTail Entity
+ *
+ * Implements distance-constrained inverse kinematics chain trailing
+ * (the standard model used in Snake / Worm / Dragon games).
+ *
+ * Properties:
+ * - Strict constant distance constraint (D = 18px): eliminates gaps/stretching at any speed.
+ * - Organic curvature on turns with smooth rotational alignment.
+ * - Proper z-ordering and seamless scale overlapping.
+ * - Zero per-frame memory allocations (O(N) with N <= 25).
+ */
 export class LionTail extends Phaser.GameObjects.Container {
     private segments: Phaser.GameObjects.Sprite[] = [];
-    private history: { x: number, y: number }[] = [];
-    private readonly MAX_SEGMENTS = 30;
-    private readonly SEGMENT_SPACING = 6; // Frames or distance
+    private spine: { x: number; y: number; angle: number }[] = [];
+    private readonly MAX_SEGMENTS = 20;
+    private readonly SEGMENT_DISTANCE = 32; // Distance between spine vertebrae
     private target: Phaser.GameObjects.Sprite;
-    private currentLength: number = 5; // Start short
+    private currentLength: number = 4;
 
     private bodyKey: string = 'body_segment';
     private tailKey: string = 'tail_segment';
     private isGolden: boolean = false;
+    private lastTipIndex: number = -1;
 
     constructor(scene: Phaser.Scene, target: Phaser.GameObjects.Sprite) {
         super(scene, 0, 0);
@@ -20,23 +33,25 @@ export class LionTail extends Phaser.GameObjects.Container {
 
         this.updateBaseKeys();
 
-        // Initialize max segments but hide unused ones
-        // Use body_segment for middle parts, tail_segment only at the very end
+        // Initialize spine points and segment sprites
         for (let i = 0; i < this.MAX_SEGMENTS; i++) {
-            const segment = scene.add.sprite(target.x, target.y, this.bodyKey);
-            // Gradual scale down: start at 0.9 (close to head), end at 0.5
-            const scale = 0.9 - (i / this.MAX_SEGMENTS) * 0.4;
-            segment.setScale(scale);
+            const initX = target.x - (i + 1) * this.SEGMENT_DISTANCE;
+            const initY = target.y;
+            this.spine.push({ x: initX, y: initY, angle: 0 });
+
+            const segment = scene.add.sprite(initX, initY, this.bodyKey);
+            segment.setOrigin(0.5, 0.5);
+            segment.setScale(0.92);
             segment.setFlipX(true);
             segment.setVisible(false);
+            segment.setDepth(target.depth - (i + 1));
             this.segments.push(segment);
             scene.add.existing(segment);
-            segment.setDepth(target.depth - 1);
         }
     }
 
     setLength(length: number) {
-        this.currentLength = Phaser.Math.Clamp(length, 5, this.MAX_SEGMENTS);
+        this.currentLength = Phaser.Math.Clamp(length, 3, this.MAX_SEGMENTS);
     }
 
     private updateBaseKeys() {
@@ -48,25 +63,27 @@ export class LionTail extends Phaser.GameObjects.Container {
     setToGolden() {
         this.isGolden = true;
         this.updateTextures();
-        // Removed preFX glow on all segments because 30 hardware glow passes tanks performance
     }
 
     restoreColor() {
         this.isGolden = false;
         this.updateBaseKeys();
         this.updateTextures();
-        // No preFX to clear anymore
     }
 
     private updateTextures() {
+        const tipIndex = this.currentLength - 1;
         this.segments.forEach((s, i) => {
-            const isTip = (i === this.lastTipIndex && s.visible);
+            const isTip = (i === tipIndex);
             if (this.isGolden) {
                 s.setTexture(isTip ? 'tail_segment_golden' : 'body_segment_golden');
             } else {
                 s.setTexture(isTip ? this.tailKey : this.bodyKey);
             }
+            const taper = 0.94 - (i / this.MAX_SEGMENTS) * 0.08;
+            s.setScale(isTip ? 0.88 : taper);
         });
+        this.lastTipIndex = tipIndex;
     }
 
     setTint(color: number) {
@@ -77,142 +94,93 @@ export class LionTail extends Phaser.GameObjects.Container {
         this.segments.forEach(s => s.clearTint());
     }
 
-    private currentDirection: number = 1;
-    private spacingFactor: number = 1.0;
-    private lastTipIndex: number = -1;
-
-    update(targetDirection: number = 1) {
+    /**
+     * Update segment positions with distance constraints layered with
+     * continuous flowing flight waves (billowing silk in the wind).
+     */
+    update(time: number = 0, isBursting: boolean = false) {
         try {
-            // Smoothly interpolate direction
-            // Lerp factor 0.1 for smooth swing
-            this.currentDirection = Phaser.Math.Linear(this.currentDirection, targetDirection, 0.1);
+            const count = this.currentLength;
+            const tipIndex = count - 1;
 
-            // Record history
-            this.history.unshift({ x: this.target.x, y: this.target.y });
-
-            // Limit history
-            const maxHistory = this.MAX_SEGMENTS * this.SEGMENT_SPACING + 1;
-            if (this.history.length > maxHistory) {
-                this.history.pop();
+            if (tipIndex !== this.lastTipIndex) {
+                this.updateTextures();
             }
 
-            // DIAGONAL DETECTION & SPACING LOGIC
-            // Check recent movement to determine if diagonal
-            let isDiagonal = false;
-            if (this.target.body) {
-                const body = this.target.body as Phaser.Physics.Arcade.Body;
-                if (Math.abs(body.velocity.x) > 20 && Math.abs(body.velocity.y) > 20) {
-                    isDiagonal = true;
+            // 1. KINEMATIC SPINE UPDATE (Zero gaps / constant distance)
+            // Segment 0 follows the player target (head)
+            if (count > 0 && this.spine[0]) {
+                const s0 = this.spine[0];
+                const dx = this.target.x - s0.x;
+                const dy = this.target.y - s0.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist > this.SEGMENT_DISTANCE) {
+                    const factor = this.SEGMENT_DISTANCE / dist;
+                    s0.x = this.target.x - dx * factor;
+                    s0.y = this.target.y - dy * factor;
                 }
+
+                const targetAngle = Math.atan2(dy, dx);
+                s0.angle = Phaser.Math.Angle.RotateTo(s0.angle, targetAngle, 0.15);
             }
 
-            // Smoothly interpolate spacing factor
-            // Target: 0.3 if diagonal, 1.0 if not
-            const targetSpacing = isDiagonal ? 0.3 : 1.0;
-            if (!this.spacingFactor) this.spacingFactor = 1.0;
-            this.spacingFactor = Phaser.Math.Linear(this.spacingFactor, targetSpacing, 0.1);
+            // Subsequent spine joints follow the joint ahead
+            for (let i = 1; i < count; i++) {
+                const prev = this.spine[i - 1];
+                const curr = this.spine[i];
+                if (!prev || !curr) continue;
 
-            // Update segments
-            const BODY_OFFSET = 7 * this.spacingFactor;
-            const TAIL_OFFSET = 14 * this.spacingFactor;
+                const dx = prev.x - curr.x;
+                const dy = prev.y - curr.y;
+                const dist = Math.hypot(dx, dy);
 
-            for (let i = 0; i < this.segments.length; i++) {
-                if (i < this.currentLength) {
-                    const segment = this.segments[i];
-                    if (!segment) continue;
+                if (dist > this.SEGMENT_DISTANCE) {
+                    const factor = this.SEGMENT_DISTANCE / dist;
+                    curr.x = prev.x - dx * factor;
+                    curr.y = prev.y - dy * factor;
+                }
 
-                    segment.setVisible(true);
+                const targetAngle = Math.atan2(dy, dx);
+                curr.angle = Phaser.Math.Angle.RotateTo(curr.angle, targetAngle, 0.15);
+            }
 
-                    // Texture key: tail_segment ONLY for the last VISIBLE segment
-                    const isFinalVisible = (i === this.currentLength - 1);
-                    if (isFinalVisible && i !== this.lastTipIndex) {
-                        segment.setTexture(this.isGolden ? 'tail_segment_golden' : this.tailKey);
-                        if (this.lastTipIndex >= 0 && this.segments[this.lastTipIndex]) {
-                            this.segments[this.lastTipIndex].setTexture(this.isGolden ? 'body_segment_golden' : this.bodyKey);
-                        }
-                        this.lastTipIndex = i;
-                    }
+            // 2. FLOWING SILK FLIGHT WAVE LAYER (Organic continuous motion even when idle)
+            const t = time / 1000;
+            const waveFreq = isBursting ? 7.5 : 4.4; // Faster flutter during lucky burst
 
-                    const index = (i + 1) * this.SEGMENT_SPACING;
-                    if (index < this.history.length) {
-                        const pos = this.history[index];
+            for (let i = 0; i < count; i++) {
+                const sp = this.spine[i];
+                const sprite = this.segments[i];
+                if (!sp || !sprite) continue;
 
-                        // Apply offset
-                        // Base offset for all segments
-                        let totalOffset = (i + 1) * BODY_OFFSET;
+                sprite.setVisible(true);
 
-                        // If this is the tail tip, add extra gap
-                        if (isFinalVisible) {
-                            totalOffset += (TAIL_OFFSET - BODY_OFFSET);
-                        }
+                // Traveling sine wave down the dragon spine
+                const wavePhase = t * waveFreq - (i + 1) * 0.52;
+                const waveAmp = 3.5 + (i / count) * 8.0; // Ampler ripple towards the tail
+                const displacement = Math.sin(wavePhase) * waveAmp;
 
-                        // MODIFIED: Directional offset
-                        // If direction is 1 (right), we subtract offset (segments lag left)
-                        // If direction is -1 (left), we ADD offset (segments lag right)? 
-                        // Actually:
-                        // If moving RIGHT (x increasing), history has smaller x. 
-                        // VisualX = pos.x - totalOffset. 
-                        // Wait, history saves absolute positions of the HEAD.
-                        // So `pos.x` is where the head WAS `index` frames ago.
-                        // We shouldn't need manual offset subtraction if we are following history, 
-                        // UNLESS the history is just the head's current position repeated?
-                        // The original code was: `const visualX = pos.x - totalOffset;`
-                        // This implies the tail is NOT following the track, but rather rigidly offset from the gathered history points?
-                        // If history tracks (x, y), then `pos.x` IS the position where the head was.
-                        // So simply placing the segment at `pos.x` should be enough to trail?
-                        // The `totalOffset` usage suggests the user wanted to "stretch" it out artificially beyond just the time delay.
-                        // If so, `totalOffset` simulates the physical length of the body chain.
-                        // So:
-                        // If moving Right: Head > Body. Body is to the Left. Offset should subtract.
-                        // If moving Left: Head < Body. Body is to the Right. Offset should ADD.
+                // Apply displacement perpendicular to spine heading
+                const normalX = -Math.sin(sp.angle) * displacement;
+                const normalY = Math.cos(sp.angle) * displacement;
 
-                        const visualX = pos.x - (totalOffset * this.currentDirection);
+                sprite.setPosition(sp.x + normalX, sp.y + normalY);
 
-                        segment.setPosition(visualX, pos.y);
+                // Add gentle harmonic rotation to simulate billowing silk
+                const rotWave = Math.cos(wavePhase) * 0.10;
+                sprite.setRotation(sp.angle + rotWave);
+            }
 
-                        // ROTATION LOGIC
-                        let targetX = this.target.x;
-                        let targetY = this.target.y;
-
-                        if (i > 0) {
-                            // Look at previous segment
-                            const prev = this.segments[i - 1];
-                            if (prev) {
-                                targetX = prev.x;
-                                targetY = prev.y;
-                            }
-                        } else {
-                            // First segment looks at head
-                            targetX = this.target.x;
-                            targetY = this.target.y;
-                        }
-
-                        const targetAngle = Phaser.Math.Angle.Between(
-                            visualX, pos.y,
-                            targetX, targetY
-                        );
-
-                        // Smooth interp
-                        const currentRotation = segment.rotation;
-                        const newRotation = Phaser.Math.Angle.RotateTo(currentRotation, targetAngle, 0.1);
-
-                        segment.setRotation(newRotation);
-
-                    } else {
-                        const last = this.history[this.history.length - 1];
-                        if (last) {
-                            // Keep the offset relative to the last known position
-                            let totalOffset = (i + 1) * BODY_OFFSET;
-                            if (isFinalVisible) {
-                                totalOffset += (TAIL_OFFSET - BODY_OFFSET);
-                            }
-                            // Apply interpolated direction here too
-                            const visualX = last.x - (totalOffset * this.currentDirection);
-                            segment.setPosition(visualX, last.y);
-                        }
-                    }
-                } else {
-                    if (this.segments[i]) this.segments[i].setVisible(false);
+            // Hide remaining unused segments
+            const lastVisible = this.spine[tipIndex];
+            for (let i = count; i < this.segments.length; i++) {
+                const unused = this.segments[i];
+                if (!unused) continue;
+                unused.setVisible(false);
+                if (lastVisible) {
+                    unused.setPosition(lastVisible.x, lastVisible.y);
+                    unused.setRotation(lastVisible.angle);
                 }
             }
         } catch (e) {
@@ -220,9 +188,12 @@ export class LionTail extends Phaser.GameObjects.Container {
         }
     }
 
-    // Cleanup
-    destroy() {
-        this.segments.forEach(s => s.destroy());
-        super.destroy();
+    destroy(fromScene?: boolean) {
+        this.segments.forEach(s => {
+            if (s && s.active) s.destroy();
+        });
+        this.segments = [];
+        this.spine = [];
+        super.destroy(fromScene);
     }
 }

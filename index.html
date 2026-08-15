@@ -2,18 +2,36 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/assets/sprites/lion.png" />
+    <link rel="icon" type="image/png" href="./assets/sprites/lion.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>lion-lucky-run</title>
+    <title>Lion Train Lucky Run 🏮</title>
     <style>
-      * { margin: 0; padding: 0; }
-      html, body { width: 100%; height: 100%; overflow: hidden; background: #87CEEB; }
-      #app { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-      canvas { display: block; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #87CEEB;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+      }
+      #app {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      canvas {
+        display: block;
+        touch-action: none;
+      }
     </style>
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="./src/main.ts"></script>
   </body>
 </html>

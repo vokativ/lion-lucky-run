@@ -16,6 +16,10 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
         expandParent: true,
         parent: 'app',
     },
+    fps: {
+        forceSetTimeOut: true,
+        target: 60
+    },
     physics: {
         default: 'arcade',
         arcade: {

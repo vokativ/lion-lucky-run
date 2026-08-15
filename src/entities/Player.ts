@@ -12,19 +12,23 @@ import { Settings } from '../storage/Settings';
  * - Touch/Mouse: Player moves towards the last touched position.
  */
 export class Player extends Phaser.Physics.Arcade.Sprite {
-    private readonly SPEED = 300;
+    private readonly SPEED = 320;
     private targetY: number;
-    private targetX: number; // Track X target for pointer
-    private isBonked: boolean = false; // "Dizzy" state after hitting obstacle
-    private isBursting: boolean = false; // "Lucky Burst" invincibility state
+    private targetX: number;
+    private isBonked: boolean = false;
+    private isBursting: boolean = false;
     private bonkTimer?: Phaser.Time.TimerEvent;
     private burstParticles?: Phaser.GameObjects.Particles.ParticleEmitter;
+    private wasd?: { W: Phaser.Input.Keyboard.Key; A: Phaser.Input.Keyboard.Key; S: Phaser.Input.Keyboard.Key; D: Phaser.Input.Keyboard.Key };
+    private pointerMoveHandler?: (pointer: Phaser.Input.Pointer) => void;
+    private pointerDownHandler?: (pointer: Phaser.Input.Pointer) => void;
+    private burstStartHandler?: () => void;
+    private burstEndHandler?: () => void;
 
     // The lion's tail follows the head
     private tail!: LionTail;
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
-        // Init with appropriate color
         const color = Settings.getColor();
         const textureKey = color === 'red' ? 'lion' : `lion_${color}`;
         super(scene, x, y, textureKey);
@@ -34,13 +38,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         scene.physics.add.existing(this);
 
         this.setCollideWorldBounds(true);
-        this.setBodySize(30, 30);
-        this.setDepth(10); // Ensure head is above tail
+        this.setBodySize(40, 40);
+        this.setDepth(10);
 
         this.targetY = y;
         this.targetX = x;
 
-        // Initialize Tail
         this.tail = new LionTail(scene, this);
 
         // Setup particles for Lucky Burst
@@ -49,71 +52,72 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             g.fillStyle(0xffffff, 1);
             g.fillRect(0, 0, 4, 4);
             g.generateTexture('sparkle', 4, 4);
+            g.destroy();
         }
 
         this.burstParticles = scene.add.particles(0, 0, 'sparkle', {
-            speed: { min: 100, max: 250 },
+            speed: { min: 80, max: 200 },
             scale: { start: 1.5, end: 0 },
-            tint: [0xffd700, 0xffaa00, 0xffffff], // Golden sparkles
+            tint: [0xffd700, 0xff8c00, 0xffffff],
             blendMode: 'ADD',
-            lifespan: 800,
-            frequency: -1, // Don't emit by default
-            x: { min: -40, max: 40 },
-            y: { min: -40, max: 40 }
+            lifespan: 600,
+            frequency: -1,
+            x: { min: -20, max: 20 },
+            y: { min: -20, max: 20 }
         });
         this.burstParticles.startFollow(this);
 
-        // Touch/Mouse Input Handling
-        // We track the pointer position to move the player towards it
-        scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-            if (pointer.isDown && this.scene.input.hitTestPointer(pointer).length === 0) {
-                this.targetY = pointer.y;
-                this.targetX = pointer.x;
-            }
-        });
-        scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-            if (this.scene.input.hitTestPointer(pointer).length === 0) {
-                this.targetY = pointer.y;
-                this.targetX = pointer.x;
-            }
-        });
+        // WASD key controls
+        if (scene.input.keyboard) {
+            this.wasd = {
+                W: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+                A: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+                S: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+                D: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+            };
+        }
 
-        // Listen for burst events
-        scene.events.on('lucky-burst-start', () => this.startBurst());
-        scene.events.on('lucky-burst-end', () => this.stopBurst());
+        // Touch/Mouse Input Handling
+        this.pointerMoveHandler = (pointer: Phaser.Input.Pointer) => {
+            if (pointer.isDown && this.scene && this.scene.input && this.scene.input.hitTestPointer(pointer).length === 0) {
+                this.targetY = pointer.y;
+                this.targetX = pointer.x;
+            }
+        };
+        this.pointerDownHandler = (pointer: Phaser.Input.Pointer) => {
+            if (this.scene && this.scene.input && this.scene.input.hitTestPointer(pointer).length === 0) {
+                this.targetY = pointer.y;
+                this.targetX = pointer.x;
+            }
+        };
+
+        scene.input.on('pointermove', this.pointerMoveHandler);
+        scene.input.on('pointerdown', this.pointerDownHandler);
+
+        // Burst events
+        this.burstStartHandler = () => this.startBurst();
+        this.burstEndHandler = () => this.stopBurst();
+        scene.events.on('lucky-burst-start', this.burstStartHandler);
+        scene.events.on('lucky-burst-end', this.burstEndHandler);
     }
 
-    /**
-     * Update loop for the player.
-     * Handles movement, tail updates, and visual effects.
-     */
     update(_time: number, _delta: number, cursors?: Phaser.Types.Input.Keyboard.CursorKeys, fortunePercent: number = 0, isSystemBursting: boolean = false) {
         try {
-            // STATE SYNC SAFETY CHECK
-            // If the system says we are not bursting, but player thinks we are, FORCE STOP.
-            // This fixes the issue where rainbow tint persists after burst.
+            // Sync burst state
             if (this.isBursting && !isSystemBursting) {
                 this.stopBurst();
             } else if (!this.isBursting && isSystemBursting) {
                 this.startBurst();
             }
 
-            // Update tail length based on fortune
+            // Update tail
             if (this.tail) {
-                // Min 2, Max 20. 
-                // fortunePercent is 0-1.
-                const targetLen = 2 + Math.floor(fortunePercent * 18);
+                const targetLen = 3 + Math.floor(fortunePercent * 11);
                 this.tail.setLength(targetLen);
-
-                // Determine direction based on velocity
-                // If moving left (neg velocity), direction is -1. Else 1.
-                const direction = (this.body?.velocity.x ?? 0) < -5 ? -1 : 1;
-                this.tail.update(direction);
+                this.tail.update(_time, this.isBursting);
             }
 
-            // Golden glow effect during burst
             if (this.isBursting) {
-                // Ensure texture is golden during burst, instead of tinting
                 this.setTexture('lion_golden');
                 if (this.tail) {
                     this.tail.setToGolden();
@@ -121,78 +125,75 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             }
 
             if (this.isBonked) {
-                this.setVelocityX(-100); // Drift back during bonk
+                this.setVelocityX(-80);
                 return;
             }
 
-            this.setVelocityX(0);
+            // Keyboard input check
+            const upKey = (cursors && cursors.up.isDown) || (this.wasd && this.wasd.W.isDown);
+            const downKey = (cursors && cursors.down.isDown) || (this.wasd && this.wasd.S.isDown);
+            const leftKey = (cursors && cursors.left.isDown) || (this.wasd && this.wasd.A.isDown);
+            const rightKey = (cursors && cursors.right.isDown) || (this.wasd && this.wasd.D.isDown);
 
-            // Handle Movement
-            if (cursors) {
-                // Keyboard: Y-Axis
-                if (cursors.up.isDown) {
-                    this.setVelocityY(-this.SPEED);
-                    this.targetY = this.y; // Update target so touch logic doesn't override immediately
-                } else if (cursors.down.isDown) {
-                    this.setVelocityY(this.SPEED);
-                    this.targetY = this.y;
+            let vx = 0;
+            let vy = 0;
+            const hasKeyboardInput = upKey || downKey || leftKey || rightKey;
+
+            if (hasKeyboardInput) {
+                if (upKey) vy -= this.SPEED;
+                if (downKey) vy += this.SPEED;
+                if (leftKey) vx -= this.SPEED;
+                if (rightKey) vx += this.SPEED;
+
+                // Normalize diagonal movement speed
+                if (vx !== 0 && vy !== 0) {
+                    vx *= 0.7071;
+                    vy *= 0.7071;
+                }
+
+                this.setVelocity(vx, vy);
+                this.targetX = this.x;
+                this.targetY = this.y;
+            } else {
+                // Touch / Mouse targeting
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist > 8) {
+                    const speed = Math.min(this.SPEED, dist * 8);
+                    this.setVelocity((dx / dist) * speed, (dy / dist) * speed);
                 } else {
-                    // Touch/Mouse: Move towards target position (set by pointer events)
-                    // Y-AXIS
-                    const distY = this.targetY - this.y;
-                    if (Math.abs(distY) > 10) {
-                        // Move at constant speed towards target
-                        const dirY = Math.sign(distY);
-                        this.setVelocityY(dirY * this.SPEED);
-                    } else {
-                        // Snap/Stop if close
-                        this.setVelocityY(0);
-                    }
-
-                    // X-AXIS
-                    const distX = this.targetX - this.x;
-                    if (Math.abs(distX) > 10) {
-                        // Move at constant speed towards target
-                        const dirX = Math.sign(distX);
-                        this.setVelocityX(dirX * this.SPEED);
-                    } else {
-                        // Snap/Stop if close
-                        this.setVelocityX(0);
-                    }
+                    this.setVelocity(0, 0);
                 }
+            }
 
-                // Keyboard: X-Axis (Overrides Touch)
-                if (cursors.left.isDown) {
-                    this.setVelocityX(-this.SPEED);
-                    this.targetX = this.x; // Sync target to prevent lerp conflict
-                } else if (cursors.right.isDown) {
-                    this.setVelocityX(this.SPEED);
-                    this.targetX = this.x;
-                }
+            // Keep player safely within screen boundaries
+            const screenW = this.scene.scale.width;
+            const screenH = this.scene.scale.height;
+            const clampedX = Phaser.Math.Clamp(this.x, 50, screenW - 50);
+            const clampedY = Phaser.Math.Clamp(this.y, 45, screenH - 45);
+            if (clampedX !== this.x || clampedY !== this.y) {
+                this.setPosition(clampedX, clampedY);
             }
         } catch (e) {
             console.error('Player update error:', e);
         }
     }
 
-    /**
-     * Called when the player hits an obstacle without invincibility.
-     * Causes the player to be stunned ("Bonked") and drift back slightly.
-     */
     bonk() {
         if (this.isBonked || this.isBursting) return;
 
         this.isBonked = true;
-        this.setAlpha(0.5); // Visual feedback: Semi-transparent
-        this.setTint(0xff0000); // Visual feedback: Red tint
+        this.setAlpha(0.6);
+        this.setTint(0xff3333);
         if (this.tail) {
-            this.tail.setTint(0xff0000);
+            this.tail.setTint(0xff3333);
         }
         this.setVelocityY(0);
 
-        // Recover after 500ms
         if (this.bonkTimer) this.bonkTimer.remove();
-        this.bonkTimer = this.scene.time.delayedCall(500, () => {
+        this.bonkTimer = this.scene.time.delayedCall(600, () => {
             this.isBonked = false;
             this.setAlpha(1);
             this.clearTint();
@@ -201,10 +202,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             }
         });
 
-        // Bounce back slightly (knockback effect)
         this.scene.tweens.add({
             targets: this,
-            x: this.x - 20,
+            x: Math.max(50, this.x - 30),
             duration: 200,
             ease: 'Power1',
             yoyo: true
@@ -213,23 +213,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     private startBurst() {
         this.isBursting = true;
-
-        // Add native Phaser glow to the player
         this.preFX?.clear();
-        this.preFX?.addGlow(0xffd700, 4, 0, false, 0.1, 30);
+        this.preFX?.addGlow(0xffd700, 4, 0, false, 0.1, 20);
 
         if (this.burstParticles && this.scene && this.scene.textures.exists('sparkle')) {
-            this.burstParticles.setFrequency(40); // 1 particle every 40ms (~25 per second) instead of 200/s
+            this.burstParticles.setFrequency(35);
         }
     }
 
     private stopBurst() {
         this.isBursting = false;
-
-        // Revert texture to the selected color setting
         const color = Settings.getColor();
         this.setTexture(color === 'red' ? 'lion' : `lion_${color}`);
-
         this.preFX?.clear();
         this.clearTint();
         if (this.tail) {
@@ -241,7 +236,31 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    getIsBursting() {
+    getIsBursting(): boolean {
         return this.isBursting;
+    }
+
+    getIsBonked(): boolean {
+        return this.isBonked;
+    }
+
+    destroy(fromScene?: boolean) {
+        if (this.bonkTimer) {
+            this.bonkTimer.remove();
+            this.bonkTimer = undefined;
+        }
+        if (this.scene) {
+            if (this.pointerMoveHandler) this.scene.input.off('pointermove', this.pointerMoveHandler);
+            if (this.pointerDownHandler) this.scene.input.off('pointerdown', this.pointerDownHandler);
+            if (this.burstStartHandler) this.scene.events.off('lucky-burst-start', this.burstStartHandler);
+            if (this.burstEndHandler) this.scene.events.off('lucky-burst-end', this.burstEndHandler);
+        }
+        if (this.burstParticles) {
+            this.burstParticles.destroy();
+        }
+        if (this.tail) {
+            this.tail.destroy();
+        }
+        super.destroy(fromScene);
     }
 }

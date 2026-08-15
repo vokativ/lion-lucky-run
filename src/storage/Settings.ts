@@ -22,19 +22,44 @@ export const Difficulties = {
 
 export type Difficulty = typeof Difficulties[keyof typeof Difficulties];
 
+function safeGetItem(key: string): string | null {
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            return window.localStorage.getItem(key);
+        }
+    } catch (e) {
+        console.warn('Storage read restricted, falling back to memory', e);
+    }
+    return null;
+}
+
+function safeSetItem(key: string, value: string): void {
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.setItem(key, value);
+        }
+    } catch (e) {
+        console.warn('Storage write restricted', e);
+    }
+}
+
 class SettingsManager {
     private currentMode: GameMode = GameModes.LITTLE_KID;
     private lionColor: LionColor = LionColors.RED;
     private difficulty: Difficulty = Difficulties.NORMAL;
+    private highScore: number = 0;
+    private soundEnabled: boolean = true;
 
     constructor() {
-        const saved = localStorage.getItem('lion-lucky-run-settings');
+        const saved = safeGetItem('lion-lucky-run-settings');
         if (saved) {
             try {
                 const data = JSON.parse(saved);
                 this.currentMode = data.mode || GameModes.LITTLE_KID;
                 this.lionColor = data.lionColor || LionColors.RED;
                 this.difficulty = data.difficulty || Difficulties.NORMAL;
+                this.highScore = typeof data.highScore === 'number' ? data.highScore : 0;
+                this.soundEnabled = typeof data.soundEnabled === 'boolean' ? data.soundEnabled : true;
             } catch (e) {
                 console.error('Failed to parse settings', e);
             }
@@ -68,11 +93,41 @@ class SettingsManager {
         this.save();
     }
 
+    getHighScore(): number {
+        return this.highScore;
+    }
+
+    setHighScore(score: number): boolean {
+        if (score > this.highScore) {
+            this.highScore = score;
+            this.save();
+            return true; // New record
+        }
+        return false;
+    }
+
+    isSoundEnabled(): boolean {
+        return this.soundEnabled;
+    }
+
+    setSoundEnabled(enabled: boolean) {
+        this.soundEnabled = enabled;
+        this.save();
+    }
+
+    toggleSound(): boolean {
+        this.soundEnabled = !this.soundEnabled;
+        this.save();
+        return this.soundEnabled;
+    }
+
     private save() {
-        localStorage.setItem('lion-lucky-run-settings', JSON.stringify({
+        safeSetItem('lion-lucky-run-settings', JSON.stringify({
             mode: this.currentMode,
             lionColor: this.lionColor,
-            difficulty: this.difficulty
+            difficulty: this.difficulty,
+            highScore: this.highScore,
+            soundEnabled: this.soundEnabled
         }));
     }
 }

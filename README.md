@@ -23,65 +23,71 @@ Here are some key symbols you'll see in the game:
 
 ### Controls
 
-You can play on a computer or a touchscreen device.
+Playable seamlessly on desktop, tablets, and smartphones.
 
 **Keyboard:**
-*   **Arrow Keys (⬆️ ⬇️ ⬅️ ➡️):** Move the Lion up, down, left, or right.
-*   **P or ESC:** Pause the game.
+*   **Arrow Keys (⬆️ ⬇️ ⬅️ ➡️) or WASD:** Move the Lion in any direction.
+*   **P or ESC:** Pause / Resume the game.
 *   **Q:** Quit to the main menu.
 
-**Touchscreen / Mouse:**
-*   **Tap/Click & Hold:** The Lion will follow your finger or cursor.
-*   **Tap Buttons:** Use the on-screen pause and quit buttons.
+**Touchscreen / Mobile / Mouse:**
+*   **Drag / Tap:** The Lion follows your touch or cursor smoothly with boundary guardrails.
+*   **On-Screen Buttons:** Tap the sound toggle (🔊 / 🔇), pause (⏸), or quit (✕) buttons anytime.
 
-### Game Mechanics
+### Game Mechanics & Upgrades
 
-1.  **Collect Good Items:**
-    *   🍊 **Oranges**, 🧧 **Red Envelopes (Hongbao)**, and 🏮 **Lanterns**.
-    *   Collecting these increases your **Score** and fills your **Fortune Meter**.
+1.  **Collect Festive Goodies:**
+    *   🍊 **Lucky Oranges**, 🧧 **Red Envelopes (Hongbao)**, 🏮 **Festive Lanterns**, and 🧨 **Firecrackers**.
+    *   Each item awards **+10 Score**, fills the **Fortune Meter**, and plays bright synthesized pentatonic chimes.
 
-2.  **Avoid Bad Items:**
+2.  **Obstacles & Grace Period:**
     *   👻 **Ghosts** and 🪨 **Stones**.
-    *   Hitting these will make the Lion "Bonk" (get dizzy) and lose all collected Fortune.
-    *   **Warning:** If you have **0 Fortune** and hit an obstacle, it's Game Over!
+    *   With fortune in reserve: hitting an obstacle triggers a bouncy **"Bonk"** stun with a **grace period** to avoid instant death from clustered hazards.
+    *   With **0 Fortune**: hitting an obstacle ends the run.
 
-3.  **Lucky Burst (Invincibility):**
-    *   Fill your Fortune Meter completely to trigger **Lucky Burst**!
-    *   During this time, you are **invincible**, move faster, and sparkle with rainbow colors.
-    *   Smash through obstacles without penalty!
+3.  **Lucky Burst (Invincible Golden Lion):**
+    *   Fill the Fortune Meter to 100% to transform into the **Golden Lion**!
+    *   Enjoy invulnerability, sparkling golden trail particles, and smash through obstacles with fanfare.
 
-## 🛠️ Technical Details
+4.  **Persistent High Scores & Sticker Collection:**
+    *   High scores are saved automatically across sessions (with safe sandboxed storage for embedded iframes).
+    *   Score 50+ points in a run to unlock festive stickers (🦁 Lion Head, 🏮 Lantern, 🍊 Orange, 🥁 Drum, 🧨 Firecracker, 🪙 Gold Ingot).
 
-This game is built using:
-- **Phaser 3:** A fast, fun, and free open-source HTML5 game framework.
-- **TypeScript:** For type-safe code.
-- **Vite:** Next Generation Frontend Tooling.
+5.  **Zero-Asset Web Audio Synthesizer:**
+    *   Built-in Web Audio procedural sound engine that generates cheerful Chinese New Year chimes, bouncy cartoon bonks, and fanfare without needing external audio files.
 
-### Installation & Development
+## 🚀 Deploying to Itch.io / HIO / Web
 
-If you want to run the code locally or modify the game:
-
-1.  **Clone the repository:**
+1.  **Create the zip package:**
     ```bash
-    git clone https://github.com/vokativ/lion-lucky-run.git
-    cd lion-lucky-run
+    npm run package:itch
     ```
+    This builds the production bundle with relative paths (`./`) and outputs `lion-lucky-run-itch.zip` (~1.3 MB).
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
+2.  **Upload to Itch.io:**
+    *   Create a new project on [itch.io](https://itch.io/game/new).
+    *   Set **Kind of project** to: `HTML`.
+    *   Under **Uploads**, click **Upload files** and choose `lion-lucky-run-itch.zip`.
+    *   Check the box: `This file will be played in the browser`.
+    *   Set **Viewport dimensions**: `1280` x `720` (or check `Automatically detect resolution` / `Responsive`).
+    *   Enable **Fullscreen button** if desired.
+    *   Save and publish!
 
-3.  **Start Development Server:**
-    ```bash
-    npm run dev
-    ```
-    Open your browser to `http://localhost:5173`.
+## 🛠️ Local Development
 
-4.  **Build for Production:**
-    ```bash
-    npm run build
-    ```
+```bash
+# Install dependencies
+npm install
+
+# Start local dev server
+npm run dev
+
+# Production build
+npm run build
+
+# Preview build locally
+npm run preview
+```
 
 ## 📝 License
 
